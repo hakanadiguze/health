@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Team Health Check</title>
+<style>
+  :root {
+    --bg: #0a1628;
+    --surface: #111f35;
+    --surface2: #172540;
+    --accent: #00c896;
+    --accent2: #0d7377;
+    --orange: #e76f51;
+    --yellow: #f4a261;
+    --red: #e63946;
+    --text: #e8edf5;
+    --muted: #6b7fa3;
+    --border: rgba(255,255,255,0.07);
+    --green: #00c896;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
+
+  /* NAV */
+  nav { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 100; }
+  .nav-brand { display: flex; align-items: center; gap: 0.6rem; font-weight: 700; font-size: 1.1rem; color: var(--accent); }
+  .nav-brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+  .nav-sub { font-size: 0.75rem; color: var(--muted); }
+
+  /* LAYOUT */
+  .container { max-width: 860px; margin: 0 auto; padding: 2rem 1rem; }
+  .center { text-align: center; }
+
+  /* CARDS */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; }
+  .card-title { font-size: 1.2rem; font-weight: 700; color: var(--accent); margin-bottom: 1rem; }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.7rem 1.4rem; border-radius: 10px; border: none; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.2s; text-decoration: none; }
+  .btn-primary { background: var(--accent); color: #0a1628; }
+  .btn-primary:hover { background: #00e0a8; transform: translateY(-1px); }
+  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-orange { background: var(--orange); color: #fff; }
+  .btn-orange:hover { background: #f08060; }
+  .btn-full { width: 100%; justify-content: center; }
+  .btn-lg { padding: 1rem 2rem; font-size: 1.05rem; border-radius: 12px; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  /* INPUTS */
+  input, textarea, select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 0.7rem 1rem; font-size: 0.95rem; outline: none; transition: border 0.2s; width: 100%; }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  label { display: block; color: var(--muted); font-size: 0.85rem; margin-bottom: 0.4rem; }
+  .form-group { margin-bottom: 1.2rem; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0.5rem; background: var(--surface2); border-radius: 12px; padding: 0.3rem; margin-bottom: 1.5rem; }
+  .tab { flex: 1; padding: 0.6rem; border-radius: 9px; border: none; background: none; color: var(--muted); cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; }
+  .tab.active { background: var(--accent); color: #0a1628; }
+
+  /* CATEGORY CHIPS */
+  .category-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .category-item { display: flex; align-items: center; gap: 0.7rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 0.6rem 1rem; }
+  .category-item .cat-icon { font-size: 1.3rem; }
+  .category-item .cat-name { flex: 1; font-size: 0.95rem; }
+  .category-item .cat-remove { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; padding: 0 0.3rem; }
+  .category-item .cat-remove:hover { color: var(--red); }
+  .add-category { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+  .add-category input { flex: 1; }
+
+  /* EMOJI VOTE */
+  .emoji-scale { display: flex; justify-content: space-between; gap: 0.4rem; }
+  .emoji-btn { flex: 1; background: var(--surface2); border: 2px solid var(--border); border-radius: 12px; padding: 0.8rem 0.3rem; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 0.3rem; transition: all 0.2s; }
+  .emoji-btn .em { font-size: 1.6rem; }
+  .emoji-btn .score { font-size: 0.75rem; color: var(--muted); font-weight: 600; }
+  .emoji-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .emoji-btn.selected { border-color: var(--accent); background: rgba(0,200,150,0.15); }
+  .emoji-btn.selected .score { color: var(--accent); }
+
+  /* HEALTH ITEM */
+  .health-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 1.2rem; margin-bottom: 1rem; }
+  .health-item-header { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 1rem; }
+  .health-item-icon { font-size: 1.5rem; }
+  .health-item-name { font-weight: 600; font-size: 1rem; }
+
+  /* RESULTS */
+  .result-item { background: var(--surface2); border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.8rem; display: flex; align-items: center; gap: 1rem; }
+  .result-icon { font-size: 1.4rem; min-width: 1.4rem; }
+  .result-info { flex: 1; }
+  .result-name { font-weight: 600; font-size: 0.95rem; }
+  .result-bar-wrap { height: 8px; background: var(--border); border-radius: 4px; margin-top: 0.4rem; overflow: hidden; }
+  .result-bar { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+  .result-score { font-size: 1.3rem; font-weight: 800; min-width: 2.5rem; text-align: right; }
+  .badge-red { color: var(--red); }
+  .badge-yellow { color: var(--yellow); }
+  .badge-green { color: var(--green); }
+  .bar-red { background: var(--red); }
+  .bar-yellow { background: var(--yellow); }
+  .bar-green { background: var(--green); }
+
+  /* TREND */
+  .trend-chip { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 6px; }
+  .trend-up { background: rgba(0,200,150,0.15); color: var(--green); }
+  .trend-down { background: rgba(230,57,70,0.15); color: var(--red); }
+  .trend-same { background: rgba(107,127,163,0.15); color: var(--muted); }
+
+  /* SCORE CARDS */
+  .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+  .score-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; text-align: center; }
+  .score-card .big { font-size: 2rem; font-weight: 800; }
+  .score-card .lbl { font-size: 0.78rem; color: var(--muted); margin-top: 0.3rem; }
+
+  /* PARTICIPANTS */
+  .participants-bar { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.7rem 1.2rem; background: var(--surface2); border-radius: 10px; margin-bottom: 1rem; font-size: 0.9rem; color: var(--muted); }
+  .participants-bar strong { color: var(--accent); }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 3rem; color: var(--muted); }
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* HISTORY */
+  .history-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 0.7rem; display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: border 0.2s; }
+  .history-item:hover { border-color: var(--accent); }
+  .history-date { font-weight: 600; font-size: 0.95rem; }
+  .history-meta { font-size: 0.8rem; color: var(--muted); margin-top: 0.2rem; }
+  .history-avg { font-size: 1.4rem; font-weight: 800; }
+
+  /* ALERT */
+  .alert { padding: 0.8rem 1.2rem; border-radius: 10px; font-size: 0.9rem; margin-bottom: 1rem; }
+  .alert-info { background: rgba(13,115,119,0.2); border: 1px solid var(--accent2); color: var(--accent); }
+  .alert-warn { background: rgba(244,162,97,0.15); border: 1px solid var(--yellow); color: var(--yellow); }
+
+  /* SESSION CODE */
+  .code-box { background: var(--surface2); border: 2px solid var(--accent); border-radius: 14px; padding: 1.5rem; text-align: center; margin: 1rem 0; }
+  .code-display { font-size: 3rem; font-weight: 900; letter-spacing: 0.3rem; color: var(--accent); font-family: monospace; }
+  .code-sub { font-size: 0.85rem; color: var(--muted); margin-top: 0.5rem; }
+
+  /* MODAL */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 2rem; max-width: 500px; width: 100%; }
+  .modal-title { font-size: 1.3rem; font-weight: 700; color: var(--accent); margin-bottom: 1.2rem; }
+
+  /* HIDDEN */
+  .hidden { display: none !important; }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    .score-grid { grid-template-columns: repeat(2, 1fr); }
+    .emoji-btn .em { font-size: 1.3rem; }
+  }
+
+  /* FOOTER */
+  footer { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.82rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <div class="dot"></div>
+    💚 Team Health Check
+  </div>
+  <div class="nav-sub">by <a href="https://hakanadiguzel.com" style="color:var(--accent);text-decoration:none">hakanadiguzel.com</a></div>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="container">
+  <div style="text-align:center;padding:2rem 0 1rem">
+    <div style="font-size:3rem;margin-bottom:1rem">💚</div>
+    <h1 style="font-size:2rem;font-weight:800;margin-bottom:0.5rem">Team Health Check</h1>
+    <p style="color:var(--muted);max-width:420px;margin:0 auto 2rem">Measure how your team feels. Every sprint. Track the trend over time.</p>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;max-width:500px;margin:0 auto">
+    <button class="btn btn-primary btn-lg btn-full" onclick="showPage('facilitator-setup')">🚀 Start a Session</button>
+    <button class="btn btn-secondary btn-lg btn-full" onclick="showPage('join')">🔗 Join a Session</button>
+  </div>
+  <div style="text-align:center;margin-top:1.5rem">
+    <button class="btn btn-secondary" onclick="showPage('history-home')">📊 View History</button>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:3rem;max-width:700px;margin-left:auto;margin-right:auto">
+    <div class="card" style="text-align:center;padding:1.2rem">
+      <div style="font-size:1.8rem;margin-bottom:0.5rem">🎯</div>
+      <div style="font-weight:700;margin-bottom:0.3rem">Anonymous</div>
+      <div style="font-size:0.82rem;color:var(--muted)">Nobody sees who voted what</div>
+    </div>
+    <div class="card" style="text-align:center;padding:1.2rem">
+      <div style="font-size:1.8rem;margin-bottom:0.5rem">📈</div>
+      <div style="font-weight:700;margin-bottom:0.3rem">Trend Tracking</div>
+      <div style="font-size:0.82rem;color:var(--muted)">Compare sprint over sprint</div>
+    </div>
+    <div class="card" style="text-align:center;padding:1.2rem">
+      <div style="font-size:1.8rem;margin-bottom:0.5rem">📄</div>
+      <div style="font-weight:700;margin-bottom:0.3rem">PDF Export</div>
+      <div style="font-size:0.82rem;color:var(--muted)">Download full report</div>
+    </div>
+  </div>
+</div>
+
+<!-- FACILITATOR SETUP -->
+<div id="page-facilitator-setup" class="container hidden">
+  <button class="btn btn-secondary" style="margin-bottom:1rem" onclick="showPage('home')">← Back</button>
+  <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:1.5rem">⚙️ Setup Your Session</h2>
+
+  <div class="card">
+    <div class="card-title">Session Info</div>
+    <div class="form-group">
+      <label>Team Name *</label>
+      <input id="setup-team" type="text" placeholder="e.g. Team Phoenix" maxlength="40"/>
+    </div>
+    <div class="form-group">
+      <label>Sprint / Session Label</label>
+      <input id="setup-sprint" type="text" placeholder="e.g. Sprint 42" maxlength="40"/>
+    </div>
+    <div class="form-group">
+      <label>Your Name (Facilitator)</label>
+      <input id="setup-name" type="text" placeholder="e.g. Hakan" maxlength="30"/>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Health Categories</div>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">Customize the categories your team will rate (1-5).</p>
+    <div id="category-list" class="category-list"></div>
+    <div class="add-category" style="margin-top:1rem">
+      <input id="new-cat-icon" type="text" placeholder="Emoji" style="width:70px;text-align:center"/>
+      <input id="new-cat-name" type="text" placeholder="Category name..." style="flex:1"/>
+      <button class="btn btn-secondary" onclick="addCategory()">+ Add</button>
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-full btn-lg" onclick="createSession()">🚀 Create Session & Get Link</button>
+</div>
+
+<!-- JOIN -->
+<div id="page-join" class="container hidden">
+  <button class="btn btn-secondary" style="margin-bottom:1rem" onclick="showPage('home')">← Back</button>
+  <div class="card" style="max-width:440px;margin:0 auto">
+    <div class="card-title">🔗 Join a Session</div>
+    <div class="form-group">
+      <label>Session Code</label>
+      <input id="join-code" type="text" placeholder="Enter 4-letter code" maxlength="4" style="text-transform:uppercase;letter-spacing:0.2rem;font-size:1.2rem;text-align:center" oninput="this.value=this.value.toUpperCase()"/>
+    </div>
+    <div class="form-group">
+      <label>Your Name (optional)</label>
+      <input id="join-name" type="text" placeholder="Anonymous" maxlength="20"/>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="joinSession()">Join →</button>
+  </div>
+</div>
+
+<!-- FACILITATOR WAITING -->
+<div id="page-facilitator-wait" class="container hidden">
+  <div class="card" style="max-width:500px;margin:0 auto;text-align:center">
+    <div class="card-title">✅ Session Created!</div>
+    <div class="code-box">
+      <div class="code-display" id="session-code-display">----</div>
+      <div class="code-sub">Share this code with your team</div>
+    </div>
+    <div style="margin:1rem 0">
+      <div style="font-size:0.85rem;color:var(--muted);margin-bottom:0.5rem">Or share the direct link:</div>
+      <div id="session-link-display" style="background:var(--surface2);padding:0.7rem;border-radius:8px;font-size:0.82rem;word-break:break-all;color:var(--accent)"></div>
+      <button class="btn btn-secondary" style="margin-top:0.5rem;width:100%" onclick="copyLink()">📋 Copy Link</button>
+    </div>
+    <div class="participants-bar">
+      Waiting for participants… <strong id="wait-count">0</strong> joined
+    </div>
+    <div id="wait-submitted" style="color:var(--muted);font-size:0.85rem;margin-bottom:1rem">0 submitted</div>
+    <button class="btn btn-primary btn-full btn-lg" onclick="revealResults()" id="reveal-btn">🎉 Reveal Results</button>
+    <button class="btn btn-secondary btn-full" style="margin-top:0.7rem" onclick="confirmClose()">✕ Close Session</button>
+  </div>
+</div>
+
+<!-- PARTICIPANT VOTING -->
+<div id="page-voting" class="container hidden">
+  <div class="alert alert-info" style="max-width:600px;margin:0 auto 1rem">
+    🔒 Your votes are anonymous. Nobody will see who voted what.
+  </div>
+  <div id="voting-categories" style="max-width:600px;margin:0 auto"></div>
+  <div style="max-width:600px;margin:0 auto">
+    <button class="btn btn-primary btn-full btn-lg" id="submit-vote-btn" onclick="submitVote()">✅ Submit My Votes</button>
+  </div>
+</div>
+
+<!-- SUBMITTED WAIT -->
+<div id="page-submitted" class="container hidden" style="text-align:center;padding-top:4rem">
+  <div style="font-size:3rem;margin-bottom:1rem">✅</div>
+  <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:0.5rem">Votes submitted!</h2>
+  <p style="color:var(--muted)">Waiting for the facilitator to reveal results…</p>
+  <div class="spinner" style="margin:2rem auto"></div>
+</div>
+
+<!-- RESULTS -->
+<div id="page-results" class="container hidden">
+  <div style="max-width:700px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:1.5rem">
+      <div style="font-size:2rem;margin-bottom:0.3rem">💚 Results</div>
+      <div id="results-session-label" style="color:var(--muted);font-size:0.9rem"></div>
+    </div>
+
+    <div class="score-grid" id="results-summary"></div>
+
+    <div id="results-list" style="margin-bottom:1.5rem"></div>
+
+    <div style="display:flex;gap:0.7rem;flex-wrap:wrap;justify-content:center">
+      <button class="btn btn-primary" onclick="exportPDF()">📄 Download PDF</button>
+      <button class="btn btn-secondary" onclick="showPage('history-home')">📊 View History</button>
+      <button class="btn btn-secondary" onclick="showPage('home')">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY HOME -->
+<div id="page-history-home" class="container hidden">
+  <button class="btn btn-secondary" style="margin-bottom:1rem" onclick="showPage('home')">← Back</button>
+  <h2 style="font-size:1.5rem;font-weight:800;margin-bottom:0.5rem">📊 Session History</h2>
+  <div class="form-group" style="max-width:300px">
+    <label>Filter by Team Name</label>
+    <input id="history-filter" type="text" placeholder="All teams" oninput="filterHistory()"/>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- HISTORY DETAIL -->
+<div id="page-history-detail" class="container hidden">
+  <button class="btn btn-secondary" style="margin-bottom:1rem" onclick="showPage('history-home')">← Back to History</button>
+  <div id="history-detail-content"></div>
+</div>
+
+<!-- MODAL CONFIRM CLOSE -->
+<div id="modal-close" class="modal-bg hidden">
+  <div class="modal">
+    <div class="modal-title">⚠️ Close Session?</div>
+    <p style="color:var(--muted);margin-bottom:1.5rem">This will end the session. Results will be saved to history.</p>
+    <div style="display:flex;gap:0.7rem">
+      <button class="btn btn-danger btn-full" onclick="closeSession()">Yes, close it</button>
+      <button class="btn btn-secondary btn-full" onclick="hideModal('modal-close')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+// ── FIREBASE CONFIG ─────────────────────────────────────────────
+// TODO: Replace with your Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAP6zjYpE67Z739DCDDWSGDxrbX1vZ5lvA",
+  authDomain: "health-3ea73.firebaseapp.com",
+  databaseURL: "https://health-3ea73-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "health-3ea73",
+  storageBucket: "health-3ea73.firebasestorage.app",
+  messagingSenderId: "226386560977",
+  appId: "1:226386560977:web:e45614b73879c9223dc2f0"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── STATE ────────────────────────────────────────────────────────
+window.state = {
+  sessionCode: null,
+  sessionRef: null,
+  isFacilitator: false,
+  participantId: null,
+  categories: [],
+  votes: {},
+  unsubscribe: null,
+};
+
+// ── DEFAULT CATEGORIES ───────────────────────────────────────────
+const DEFAULT_CATEGORIES = [
+  { icon: "🎯", name: "Delivering Value" },
+  { icon: "🤝", name: "Teamwork" },
+  { icon: "🎉", name: "Fun & Energy" },
+  { icon: "🧭", name: "Mission & Purpose" },
+  { icon: "📚", name: "Learning" },
+  { icon: "🚀", name: "Speed" },
+  { icon: "🔧", name: "Process" },
+  { icon: "💬", name: "Communication" },
+];
+
+// ── HELPERS ──────────────────────────────────────────────────────
+function genCode() {
+  return Array.from({length:4}, () => "ABCDEFGHJKLMNPQRSTUVWXYZ"[Math.floor(Math.random()*23)]).join('');
+}
+function genId() { return Math.random().toString(36).substr(2,9); }
+function scoreColor(s) { return s >= 4 ? 'badge-green' : s >= 3 ? 'badge-yellow' : 'badge-red'; }
+function barColor(s) { return s >= 4 ? 'bar-green' : s >= 3 ? 'bar-yellow' : 'bar-red'; }
+function emoji(s) { const e=["😞","😕","😐","🙂","😍"]; return e[Math.round(s)-1]||"😐"; }
+
+window.showPage = function(p) {
+  document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('hidden'));
+  document.getElementById('page-'+p)?.classList.remove('hidden');
+  window.scrollTo(0,0);
+};
+
+window.hideModal = function(id) { document.getElementById(id)?.classList.add('hidden'); };
+
+// ── CATEGORY MANAGEMENT ──────────────────────────────────────────
+function renderCategories() {
+  const list = document.getElementById('category-list');
+  list.innerHTML = window.state.categories.map((c,i) => `
+    <div class="category-item">
+      <span class="cat-icon">${c.icon}</span>
+      <span class="cat-name">${c.name}</span>
+      <button class="cat-remove" onclick="removeCategory(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+window.addCategory = function() {
+  const icon = document.getElementById('new-cat-icon').value.trim() || '📌';
+  const name = document.getElementById('new-cat-name').value.trim();
+  if (!name) return;
+  window.state.categories.push({icon, name});
+  document.getElementById('new-cat-icon').value = '';
+  document.getElementById('new-cat-name').value = '';
+  renderCategories();
+};
+
+window.removeCategory = function(i) {
+  window.state.categories.splice(i,1);
+  renderCategories();
+};
+
+// ── CREATE SESSION ───────────────────────────────────────────────
+window.createSession = async function() {
+  const team = document.getElementById('setup-team').value.trim();
+  const sprint = document.getElementById('setup-sprint').value.trim() || 'Sprint';
+  const name = document.getElementById('setup-name').value.trim() || 'Facilitator';
+  if (!team) { alert('Please enter a team name'); return; }
+  if (window.state.categories.length === 0) { alert('Add at least one category'); return; }
+
+  const code = genCode();
+  window.state.sessionCode = code;
+  window.state.isFacilitator = true;
+
+  const sessionData = {
+    code,
+    team,
+    sprint,
+    facilitator: name,
+    categories: window.state.categories,
+    status: 'voting', // voting | revealed | closed
+    participants: {},
+    votes: {},
+    createdAt: Date.now(),
+  };
+
+  await set(ref(db, `health-sessions/${code}`), sessionData);
+
+  document.getElementById('session-code-display').textContent = code;
+  const link = `${location.origin}${location.pathname}?join=${code}`;
+  document.getElementById('session-link-display').textContent = link;
+  window.state.sessionLink = link;
+
+  showPage('facilitator-wait');
+  listenSession(code, 'facilitator');
+};
+
+// ── COPY LINK ────────────────────────────────────────────────────
+window.copyLink = function() {
+  navigator.clipboard.writeText(window.state.sessionLink || '').then(() => {
+    const btn = document.querySelector('[onclick="copyLink()"]');
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => btn.textContent = '📋 Copy Link', 2000);
+  });
+};
+
+// ── JOIN SESSION ─────────────────────────────────────────────────
+window.joinSession = async function(codeOverride) {
+  const code = (codeOverride || document.getElementById('join-code')?.value?.trim()?.toUpperCase());
+  const name = document.getElementById('join-name')?.value?.trim() || 'Anonymous';
+  if (!code || code.length < 4) { alert('Enter a valid session code'); return; }
+
+  const snap = await get(ref(db, `health-sessions/${code}`));
+  if (!snap.exists()) { alert('Session not found. Check the code.'); return; }
+  const s = snap.val();
+  if (s.status === 'closed') { alert('This session is closed.'); return; }
+
+  const pid = genId();
+  window.state.participantId = pid;
+  window.state.sessionCode = code;
+  window.state.categories = s.categories || [];
+  window.state.isFacilitator = false;
+
+  await update(ref(db, `health-sessions/${code}/participants/${pid}`), { name, joinedAt: Date.now() });
+
+  if (s.status === 'revealed') {
+    // Late joiner — show results directly
+    renderResults(s);
+    showPage('results');
+  } else {
+    renderVotingUI();
+    showPage('voting');
+    listenSession(code, 'participant');
+  }
+};
+
+// ── LISTEN SESSION ───────────────────────────────────────────────
+function listenSession(code, role) {
+  const r = ref(db, `health-sessions/${code}`);
+  const unsub = onValue(r, snap => {
+    if (!snap.exists()) return;
+    const s = snap.val();
+    const participants = Object.keys(s.participants || {}).length;
+    const submitted = Object.keys(s.votes || {}).length;
+
+    if (role === 'facilitator') {
+      document.getElementById('wait-count').textContent = participants;
+      document.getElementById('wait-submitted').textContent = `${submitted} submitted`;
+    }
+
+    if (s.status === 'revealed') {
+      renderResults(s);
+      showPage('results');
+    }
+  });
+}
+
+// ── RENDER VOTING UI ─────────────────────────────────────────────
+function renderVotingUI() {
+  const cats = window.state.categories;
+  const container = document.getElementById('voting-categories');
+  const emojis = ["😞","😕","😐","🙂","😍"];
+  container.innerHTML = cats.map((c, ci) => `
+    <div class="health-item">
+      <div class="health-item-header">
+        <span class="health-item-icon">${c.icon}</span>
+        <span class="health-item-name">${c.name}</span>
+      </div>
+      <div class="emoji-scale">
+        ${emojis.map((em, si) => `
+          <button class="emoji-btn" id="vote-${ci}-${si+1}" onclick="selectVote(${ci}, ${si+1})">
+            <span class="em">${em}</span>
+            <span class="score">${si+1}</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+window.selectVote = function(catIndex, score) {
+  window.state.votes[catIndex] = score;
+  const emojis_count = 5;
+  for (let i = 1; i <= emojis_count; i++) {
+    const btn = document.getElementById(`vote-${catIndex}-${i}`);
+    if (btn) btn.classList.toggle('selected', i === score);
+  }
+};
+
+// ── SUBMIT VOTE ──────────────────────────────────────────────────
+window.submitVote = async function() {
+  const cats = window.state.categories;
+  const votes = window.state.votes;
+  if (Object.keys(votes).length < cats.length) {
+    alert(`Please rate all ${cats.length} categories before submitting.`);
+    return;
+  }
+  const pid = window.state.participantId;
+  const code = window.state.sessionCode;
+  await set(ref(db, `health-sessions/${code}/votes/${pid}`), votes);
+  showPage('submitted');
+};
+
+// ── REVEAL RESULTS ───────────────────────────────────────────────
+window.revealResults = async function() {
+  const code = window.state.sessionCode;
+  const snap = await get(ref(db, `health-sessions/${code}`));
+  if (!snap.exists()) return;
+  const s = snap.val();
+
+  // Calculate averages
+  const votes = Object.values(s.votes || {});
+  const cats = s.categories || [];
+  const avgs = cats.map((_, ci) => {
+    const vals = votes.map(v => Number(v[ci])).filter(x => x > 0);
+    return vals.length ? (vals.reduce((a,b) => a+b, 0) / vals.length) : 0;
+  });
+  const overall = avgs.length ? (avgs.reduce((a,b) => a+b, 0) / avgs.length) : 0;
+  const voterCount = votes.length;
+
+  await update(ref(db, `health-sessions/${code}`), {
+    status: 'revealed',
+    results: { avgs, overall, voterCount },
+  });
+
+  // Save to history
+  saveToHistory(s, avgs, overall, voterCount);
+};
+
+// ── RENDER RESULTS ───────────────────────────────────────────────
+function renderResults(s) {
+  const cats = s.categories || [];
+  const results = s.results || {};
+  const avgs = results.avgs || cats.map(() => 0);
+  const overall = results.overall || 0;
+  const voterCount = results.voterCount || 0;
+
+  document.getElementById('results-session-label').textContent =
+    `${s.team} · ${s.sprint} · ${voterCount} participant${voterCount !== 1 ? 's' : ''}`;
+
+  // Summary cards
+  const lowest = [...avgs].sort((a,b) => a-b)[0] || 0;
+  const highest = [...avgs].sort((a,b) => b-a)[0] || 0;
+  document.getElementById('results-summary').innerHTML = `
+    <div class="score-card">
+      <div class="big ${scoreColor(overall)}">${overall.toFixed(1)}</div>
+      <div class="lbl">${emoji(overall)} Overall Avg</div>
+    </div>
+    <div class="score-card">
+      <div class="big badge-green">${highest.toFixed(1)}</div>
+      <div class="lbl">👆 Highest</div>
+    </div>
+    <div class="score-card">
+      <div class="big ${scoreColor(lowest)}">${lowest.toFixed(1)}</div>
+      <div class="lbl">👇 Lowest</div>
+    </div>
+  `;
+
+  // Category list sorted by score
+  const sorted = cats.map((c,i) => ({...c, avg: avgs[i], index: i})).sort((a,b) => a.avg - b.avg);
+  document.getElementById('results-list').innerHTML = sorted.map(c => {
+    const pct = (c.avg / 5) * 100;
+    const trend = getTrend(s.team, c.name, c.avg);
+    return `
+      <div class="result-item">
+        <div class="result-icon">${c.icon}</div>
+        <div class="result-info">
+          <div class="result-name">${c.name} ${trend}</div>
+          <div class="result-bar-wrap"><div class="result-bar ${barColor(c.avg)}" style="width:${pct}%"></div></div>
+        </div>
+        <div class="result-score ${scoreColor(c.avg)}">${c.avg.toFixed(1)}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Store session for PDF
+  window._currentSession = s;
+  window._currentAvgs = avgs;
+}
+
+// ── TREND ────────────────────────────────────────────────────────
+function getTrend(team, catName, currentAvg) {
+  try {
+    const history = JSON.parse(localStorage.getItem(`health-history-${team}`) || '[]');
+    if (history.length < 2) return '';
+    const prev = history[history.length - 2];
+    const prevCat = (prev.categories || []).find(c => c.name === catName);
+    if (!prevCat || !prevCat.avg) return '';
+    const diff = currentAvg - prevCat.avg;
+    if (Math.abs(diff) < 0.1) return '<span class="trend-chip trend-same">→ same</span>';
+    if (diff > 0) return `<span class="trend-chip trend-up">↑ +${diff.toFixed(1)}</span>`;
+    return `<span class="trend-chip trend-down">↓ ${diff.toFixed(1)}</span>`;
+  } catch { return ''; }
+}
+
+// ── HISTORY ──────────────────────────────────────────────────────
+function saveToHistory(s, avgs, overall, voterCount) {
+  try {
+    const key = `health-history-${s.team}`;
+    const history = JSON.parse(localStorage.getItem(key) || '[]');
+    history.push({
+      code: s.code,
+      team: s.team,
+      sprint: s.sprint,
+      date: new Date().toLocaleDateString('en-GB'),
+      overall,
+      voterCount,
+      categories: (s.categories || []).map((c, i) => ({...c, avg: avgs[i]})),
+    });
+    localStorage.setItem(key, JSON.stringify(history));
+
+    // Also save to global list
+    const allTeams = JSON.parse(localStorage.getItem('health-teams') || '[]');
+    if (!allTeams.includes(s.team)) { allTeams.push(s.team); localStorage.setItem('health-teams', JSON.stringify(allTeams)); }
+  } catch(e) { console.warn('History save failed', e); }
+}
+
+window.filterHistory = function() { renderHistory(); };
+
+function renderHistory() {
+  const filter = document.getElementById('history-filter')?.value?.toLowerCase() || '';
+  const allTeams = JSON.parse(localStorage.getItem('health-teams') || '[]');
+  const list = document.getElementById('history-list');
+  let entries = [];
+
+  allTeams.forEach(team => {
+    if (filter && !team.toLowerCase().includes(filter)) return;
+    const history = JSON.parse(localStorage.getItem(`health-history-${team}`) || '[]');
+    history.forEach(h => entries.push(h));
+  });
+
+  entries.sort((a,b) => (b.code||'').localeCompare(a.code||''));
+
+  if (entries.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);text-align:center;padding:2rem">No sessions saved yet.</div>';
+    return;
+  }
+
+  list.innerHTML = entries.map((h, i) => `
+    <div class="history-item" onclick="showHistoryDetail(${i})">
+      <div>
+        <div class="history-date">${h.team} · ${h.sprint}</div>
+        <div class="history-meta">${h.date} · ${h.voterCount} participants</div>
+      </div>
+      <div class="history-avg ${scoreColor(h.overall)}">${h.overall?.toFixed(1)||'—'}</div>
+    </div>
+  `).join('');
+
+  // Store for detail access
+  window._historyEntries = entries;
+}
+
+window.showHistoryDetail = function(i) {
+  const h = window._historyEntries?.[i];
+  if (!h) return;
+  const cats = h.categories || [];
+  const sorted = [...cats].sort((a,b) => a.avg - b.avg);
+
+  document.getElementById('history-detail-content').innerHTML = `
+    <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:0.5rem">${h.team} · ${h.sprint}</h2>
+    <p style="color:var(--muted);font-size:0.85rem;margin-bottom:1.5rem">${h.date} · ${h.voterCount} participants · Overall: <strong style="color:var(--accent)">${h.overall?.toFixed(1)}</strong></p>
+    ${sorted.map(c => {
+      const pct = (c.avg / 5) * 100;
+      return `<div class="result-item">
+        <div class="result-icon">${c.icon}</div>
+        <div class="result-info">
+          <div class="result-name">${c.name}</div>
+          <div class="result-bar-wrap"><div class="result-bar ${barColor(c.avg)}" style="width:${pct}%"></div></div>
+        </div>
+        <div class="result-score ${scoreColor(c.avg)}">${c.avg?.toFixed(1)}</div>
+      </div>`;
+    }).join('')}
+    <button class="btn btn-primary" style="margin-top:1rem" onclick="exportPDFHistory(${i})">📄 Export PDF</button>
+  `;
+  showPage('history-detail');
+};
+
+window.exportPDFHistory = function(i) {
+  const h = window._historyEntries?.[i];
+  if (!h) return;
+  generatePDF(h.team, h.sprint, h.date, h.categories, h.overall, h.voterCount);
+};
+
+// ── CLOSE SESSION ────────────────────────────────────────────────
+window.confirmClose = function() { document.getElementById('modal-close')?.classList.remove('hidden'); };
+window.closeSession = async function() {
+  const code = window.state.sessionCode;
+  if (code) await update(ref(db, `health-sessions/${code}`), { status: 'closed' });
+  hideModal('modal-close');
+  showPage('home');
+};
+
+// ── PDF EXPORT ───────────────────────────────────────────────────
+window.exportPDF = function() {
+  const s = window._currentSession;
+  const avgs = window._currentAvgs;
+  if (!s) return;
+  const cats = (s.categories||[]).map((c,i) => ({...c, avg: avgs[i]}));
+  generatePDF(s.team, s.sprint, new Date().toLocaleDateString('en-GB'), cats, s.results?.overall||0, s.results?.voterCount||0);
+};
+
+function generatePDF(team, sprint, date, cats, overall, voterCount) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, M = 20;
+  let y = 20;
+
+  // Header
+  doc.setFillColor(13, 115, 119);
+  doc.rect(0, 0, W, 35, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(18); doc.setFont('helvetica','bold');
+  doc.text('Team Health Check Report', M, 15);
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.text(`${team}  ·  ${sprint}  ·  ${date}  ·  ${voterCount} participant${voterCount!==1?'s':''}`, M, 26);
+  y = 50;
+
+  // Overall
+  doc.setTextColor(0,200,150);
+  doc.setFontSize(28); doc.setFont('helvetica','bold');
+  doc.text(overall.toFixed(1), W/2, y, {align:'center'});
+  doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(100,100,100);
+  doc.text('Overall Average / 5', W/2, y+8, {align:'center'});
+  y += 22;
+
+  // Categories
+  const sorted = [...cats].sort((a,b) => a.avg - b.avg);
+  sorted.forEach(c => {
+    doc.setFillColor(245,248,250);
+    doc.roundedRect(M, y, W-M*2, 16, 3, 3, 'F');
+    doc.setTextColor(30,30,30);
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.text(`${c.icon} ${c.name}`, M+4, y+10);
+    // Bar
+    const barW = 60; const barX = W - M - barW - 20;
+    doc.setFillColor(220,220,220);
+    doc.roundedRect(barX, y+5, barW, 5, 2, 2, 'F');
+    const fill = (c.avg/5)*barW;
+    const rgb = c.avg >= 4 ? [0,200,150] : c.avg >= 3 ? [244,162,97] : [230,57,70];
+    doc.setFillColor(...rgb);
+    doc.roundedRect(barX, y+5, fill, 5, 2, 2, 'F');
+    doc.setTextColor(...rgb);
+    doc.setFontSize(11); doc.setFont('helvetica','bold');
+    doc.text(c.avg.toFixed(1), W-M-4, y+10, {align:'right'});
+    y += 20;
+  });
+
+  // Footer
+  doc.setFontSize(8); doc.setTextColor(150,150,150); doc.setFont('helvetica','normal');
+  doc.text('Generated by Team Health Check · hakanadiguzel.com', W/2, 287, {align:'center'});
+
+  doc.save(`health-check-${team}-${sprint}.pdf`.replace(/\s+/g,'-'));
+}
+
+// ── AUTO-JOIN FROM URL ───────────────────────────────────────────
+const urlParams = new URLSearchParams(location.search);
+const joinCode = urlParams.get('join');
+if (joinCode) {
+  window.state.participantId = genId();
+  document.getElementById('join-code').value = joinCode.toUpperCase();
+  showPage('join');
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+window.state.categories = [...DEFAULT_CATEGORIES];
+renderCategories();
+
+// History page init
+document.getElementById('page-history-home').addEventListener('click', () => {});
+const origShowPage = window.showPage;
+window.showPage = function(p) {
+  origShowPage(p);
+  if (p === 'history-home') renderHistory();
+};
+</script>
+
+<footer>
+  Built with ❤️ by <a href="https://hakanadiguzel.com">Hakan Adıgüzel</a> · 
+  <a href="https://hakanadiguzel.com">hakanadiguzel.com</a>
+</footer>
+
+</body>
+</html>
