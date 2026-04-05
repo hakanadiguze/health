@@ -320,31 +320,41 @@ window.authSubmit=async()=>{
 window.doLogout=async()=>{safeUnsub(_saUnsub);_saUnsub=null;safeUnsub(_jnUnsub);_jnUnsub=null;await signOut(auth)};
 
 onAuthStateChanged(auth,u=>{
-  if(u){S.uid=u.uid;document.getElementById('nav-u').textContent=u.email;document.getElementById('nav-out').classList.remove('hidden');
-    const jc=new URLSearchParams(location.search).get('join');
+  const jc=new URLSearchParams(location.search).get('join');
+  if(u){
+    S.uid=u.uid;document.getElementById('nav-u').textContent=u.email;document.getElementById('nav-out').classList.remove('hidden');
     jc?directJoin(jc):(showPage('dashboard'),loadTeams());
-  }else{S.uid=null;document.getElementById('nav-u').textContent='';document.getElementById('nav-out').classList.add('hidden');showPage('auth')}
+  }else{
+    S.uid=null;document.getElementById('nav-u').textContent='';document.getElementById('nav-out').classList.add('hidden');
+    // If there's a join code, go directly to voting — no auth needed
+    jc?directJoin(jc):showPage('auth');
+  }
 });
 
-// ── DIRECT JOIN (no username, no code screen) ─────────────────
+// ── DIRECT JOIN (no auth needed) ─────────────────────────────
 async function directJoin(code){
-  const sn=await get(ref(db,`health-sessions/${code.toUpperCase()}`));
-  if(!sn.exists()){showPage('dashboard');loadTeams();return}
-  const s=sn.val();
-  if(s.status==='closed'||s.status==='revealed'){
-    window._pdfSess=s;await renderResults(s,code.toUpperCase());showPage('res');
-    document.getElementById('res-back').onclick=()=>{showPage('dashboard');loadTeams()};return;
+  const upperCode=code.toUpperCase();
+  const sn=await get(ref(db,`health-sessions/${upperCode}`));
+  if(!sn.exists()){
+    S.uid?(showPage('dashboard'),loadTeams()):showPage('auth');return;
   }
-  const pid=gid();S.pid=pid;S.sid=code.toUpperCase();
-  await update(ref(db,`health-sessions/${code.toUpperCase()}/participants/${pid}`),{joinedAt:Date.now()});
+  const s=sn.val();
+  const goBack=()=>S.uid?(showPage('dashboard'),loadTeams()):showPage('auth');
+  if(s.status==='closed'||s.status==='revealed'){
+    window._pdfSess=s;await renderResults(s,upperCode);showPage('res');
+    document.getElementById('res-back').onclick=goBack;return;
+  }
+  const pid=gid();S.pid=pid;S.sid=upperCode;
+  // Write participant — rules allow public write
+  try{await update(ref(db,`health-sessions/${upperCode}/participants/${pid}`),{joinedAt:Date.now()})}catch(e){console.warn('participant:',e)}
   renderVoteUI(s);showPage('vote');
   safeUnsub(_jnUnsub);
-  _jnUnsub=onValue(ref(db,`health-sessions/${code.toUpperCase()}/status`),sn2=>{
+  _jnUnsub=onValue(ref(db,`health-sessions/${upperCode}/status`),sn2=>{
     if(sn2.val()==='revealed'){
-      get(ref(db,`health-sessions/${code.toUpperCase()}`)).then(async sn3=>{
+      get(ref(db,`health-sessions/${upperCode}`)).then(async sn3=>{
         if(!sn3.exists())return;window._pdfSess=sn3.val();
-        await renderResults(sn3.val(),code.toUpperCase());showPage('res');
-        document.getElementById('res-back').onclick=()=>{showPage('dashboard');loadTeams()};
+        await renderResults(sn3.val(),upperCode);showPage('res');
+        document.getElementById('res-back').onclick=goBack;
       });
     }
   });
