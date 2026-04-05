@@ -27,6 +27,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.
 .bl{padding:.9rem 1.8rem;font-size:1rem;border-radius:12px}
 .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
 .bsm{padding:.38rem .85rem;font-size:.8rem;border-radius:8px}
+.bxs{padding:.28rem .6rem;font-size:.74rem;border-radius:7px}
 .fg{margin-bottom:1rem}
 label{display:block;color:var(--muted);font-size:.82rem;margin-bottom:.32rem;font-weight:500}
 input,select,textarea{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:.62rem 1rem;font-size:.92rem;outline:none;transition:border .2s;width:100%}
@@ -82,18 +83,12 @@ textarea{resize:vertical;min-height:60px}
 .as{background:rgba(0,200,150,.15);border:1px solid var(--green);color:var(--green)}
 .pb{display:flex;align-items:center;gap:.45rem;padding:.55rem .9rem;background:var(--surface2);border-radius:10px;margin-bottom:.75rem;font-size:.86rem;color:var(--muted)}
 .pb strong{color:var(--accent)}
-/* Category editor */
 .cat-editor{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:.6rem}
 .cat-editor-top{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem}
-.cat-icon-inp{width:60px;text-align:center;font-size:1.2rem}
-.cat-name-inp{flex:1}
-.cat-desc-inp{font-size:.82rem;color:var(--muted);margin-top:.3rem}
-.cat-desc-inp::placeholder{color:var(--muted)}
 .crm{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:.2rem}.crm:hover{color:var(--red)}
 .ac{display:flex;gap:.45rem;margin-top:.5rem}
 .hr{border:none;border-top:1px solid var(--border);margin:1.1rem 0}
 .ox{overflow-x:auto}
-/* cat description in voting/results */
 .cat-desc{font-size:.78rem;color:var(--muted);margin-top:.15rem;font-style:italic}
 /* hierarchy */
 .yr-block{margin-bottom:1.4rem}
@@ -110,8 +105,6 @@ textarea{resize:vertical;min-height:60px}
 .lv-fill{height:100%;border-radius:5px;transition:width .5s ease}
 .lv-val{font-size:.82rem;font-weight:700;min-width:28px;text-align:right}
 .cmb{background:var(--surface2);border-radius:10px;padding:.6rem .8rem;margin-top:.4rem;font-size:.85rem;color:var(--muted);font-style:italic}
-/* Sprint code badge */
-.sprint-code{font-family:monospace;font-size:.82rem;color:var(--accent);background:rgba(0,200,150,.1);border-radius:6px;padding:.1rem .4rem}
 footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border-top:1px solid var(--border);margin-top:2rem}
 @media(max-width:600px){.sg{grid-template-columns:repeat(2,1fr)}.eb .em{font-size:1.2rem}}
 </style>
@@ -134,19 +127,6 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
     <div class="fg"><label>Password</label><input id="ap" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authSubmit()"/></div>
     <button class="btn bp bf bl" onclick="authSubmit()" id="asb">Sign In</button>
   </div>
-  <div style="text-align:center;margin-top:1rem"><hr class="hr"/><p style="color:var(--muted);font-size:.81rem">Join a session without an account:</p>
-  <button class="btn bs" style="margin-top:.65rem" onclick="showPage('join')">🔗 Join with a code</button></div>
-</div>
-
-<!-- JOIN -->
-<div id="page-join" class="pg hidden" style="max-width:440px">
-  <button class="btn bs" style="margin-bottom:1rem" onclick="showPage('auth')">← Back</button>
-  <div class="card"><div class="ct">🔗 Join a Session</div>
-    <div class="fg"><label>Session Code</label>
-      <input id="jc" type="text" placeholder="4-LETTER CODE" maxlength="4" style="text-transform:uppercase;letter-spacing:.25rem;font-size:1.3rem;text-align:center" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')joinSession()"/></div>
-    <div class="fg"><label>Your Name</label><input id="jn" type="text" placeholder="Anonymous" maxlength="24"/></div>
-    <button class="btn bp bf" onclick="joinSession()">Join →</button>
-  </div>
 </div>
 
 <!-- DASHBOARD -->
@@ -166,7 +146,7 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
     <div style="display:flex;gap:.55rem;flex-wrap:wrap">
       <button class="btn bp" onclick="openNewSession()">▶ New Session</button>
       <button class="btn bs" onclick="showComparison()">📊 Comparison</button>
-      <button class="btn bd bsm" onclick="showModal('m-dt')">🗑 Delete</button>
+      <button class="btn bd bsm" onclick="confirmDel('team',null,null,null)">🗑 Delete Team</button>
     </div>
   </div>
   <div class="ct" style="margin-bottom:.7rem">Sessions — Year → Quarter → Sprint</div>
@@ -196,7 +176,7 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
   </div>
 </div>
 
-<!-- VOTING -->
+<!-- VOTING — direct, no username -->
 <div id="page-vote" class="pg hidden">
   <div class="al ai" style="max-width:640px;margin:0 auto 1rem">🔒 Anonymous votes. Results update live. Submit anytime.</div>
   <div id="vote-cats" style="max-width:640px;margin:0 auto"></div>
@@ -276,12 +256,14 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
   </div>
 </div>
 
-<div id="m-dt" class="mb hidden">
-  <div class="md"><div class="mt">⚠️ Delete Team?</div>
-    <p style="color:var(--muted);margin-bottom:1.4rem">Permanently deletes the team and all sessions.</p>
+<!-- Delete confirm modal -->
+<div id="m-del" class="mb hidden">
+  <div class="md">
+    <div class="mt" id="del-title">⚠️ Delete?</div>
+    <p id="del-msg" style="color:var(--muted);margin-bottom:1.4rem"></p>
     <div style="display:flex;gap:.55rem">
-      <button class="btn bd bf" onclick="deleteTeam()">Yes, delete</button>
-      <button class="btn bs bf" onclick="hideModal('m-dt')">Cancel</button>
+      <button class="btn bd bf" id="del-confirm-btn">Yes, delete</button>
+      <button class="btn bs bf" onclick="hideModal('m-del')">Cancel</button>
     </div>
   </div>
 </div>
@@ -295,13 +277,9 @@ import{getDatabase,ref,set,get,update,remove,push,onValue}from"https://www.gstat
 const FC={apiKey:"AIzaSyAP6zjYpE67Z739DCDDWSGDxrbX1vZ5lvA",authDomain:"health-3ea73.firebaseapp.com",databaseURL:"https://health-3ea73-default-rtdb.europe-west1.firebasedatabase.app",projectId:"health-3ea73",storageBucket:"health-3ea73.firebasestorage.app",messagingSenderId:"226386560977",appId:"1:226386560977:web:e45614b73879c9223dc2f0"};
 const app=initializeApp(FC);const auth=getAuth(app);const db=getDatabase(app);
 
-// ── STATE ─────────────────────────────────────────────────────
 const S={uid:null,tid:null,td:null,sid:null,pid:null,votes:{},ntCats:[]};
-let _saUnsub=null;   // Firebase onValue unsubscribe fn (not the ref)
-let _jnUnsub=null;   // for participant listener
-let _cs=[];
+let _saUnsub=null;let _jnUnsub=null;let _cs=[];
 
-// ── DEFAULTS ──────────────────────────────────────────────────
 const DC=[
   {icon:"🎯",name:"Delivering Value",desc:"Are we building the right things that matter to our customers?"},
   {icon:"🤝",name:"Teamwork",desc:"How well are we collaborating and supporting each other?"},
@@ -311,9 +289,10 @@ const DC=[
   {icon:"🚀",name:"Speed",desc:"Are we delivering at a pace we're comfortable with?"},
   {icon:"🔧",name:"Process",desc:"Are our ceremonies and processes helping or hindering us?"},
   {icon:"💬",name:"Communication",desc:"Are we communicating effectively inside and outside the team?"},
+  {icon:"✅",name:"Built-in Quality",desc:"Are we building quality in from the start, not testing it in at the end?"},
+  {icon:"🏹",name:"Strategic Alignment",desc:"Do our sprint goals align with the broader PI and company objectives?"},
 ];
 
-// ── UTILS ─────────────────────────────────────────────────────
 const gc=v=>v>=4?'cg':v>=3?'cy':'cr';
 const gb=v=>v>=4?'bg2':v>=3?'by2':'br2';
 const ge=v=>["😞","😕","😐","🙂","😍"][Math.round(v)-1]||"😐";
@@ -322,9 +301,7 @@ const gc4=()=>Array.from({length:4},()=>"ABCDEFGHJKLMNPQRSTUVWXYZ"[Math.floor(Ma
 const ft=ts=>ts?new Date(ts).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'';
 const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length):0;
 const nowQ=()=>Math.ceil((new Date().getMonth()+1)/3);
-
-// Safe unsubscribe — avoids the Path.ts crash
-function safeUnsub(fn){try{if(typeof fn==='function')fn()}catch(e){console.warn('listener cleanup:',e)}}
+const safeUnsub=fn=>{try{if(typeof fn==='function')fn()}catch(e){console.warn('unsub:',e)}};
 
 window.showPage=p=>{document.querySelectorAll('[id^="page-"]').forEach(e=>e.classList.add('hidden'));document.getElementById('page-'+p)?.classList.remove('hidden');window.scrollTo(0,0)};
 window.showModal=id=>document.getElementById(id)?.classList.remove('hidden');
@@ -340,60 +317,67 @@ window.authSubmit=async()=>{
   try{aMode==='login'?await signInWithEmailAndPassword(auth,e,p):await createUserWithEmailAndPassword(auth,e,p)}
   catch(err){el.textContent=err.message.replace('Firebase: ','').replace(/\(.*\)/,'');el.classList.remove('hidden')}
 };
-
-// IMPORTANT: logout must clean up listeners first
-window.doLogout=async()=>{
-  safeUnsub(_saUnsub);_saUnsub=null;
-  safeUnsub(_jnUnsub);_jnUnsub=null;
-  await signOut(auth);
-};
+window.doLogout=async()=>{safeUnsub(_saUnsub);_saUnsub=null;safeUnsub(_jnUnsub);_jnUnsub=null;await signOut(auth)};
 
 onAuthStateChanged(auth,u=>{
   if(u){S.uid=u.uid;document.getElementById('nav-u').textContent=u.email;document.getElementById('nav-out').classList.remove('hidden');
     const jc=new URLSearchParams(location.search).get('join');
-    jc?(document.getElementById('jc').value=jc.toUpperCase(),showPage('join')):(showPage('dashboard'),loadTeams());
-  }else{S.uid=null;document.getElementById('nav-u').textContent='';document.getElementById('nav-out').classList.add('hidden');
-    const jc=new URLSearchParams(location.search).get('join');
-    jc?(document.getElementById('jc').value=jc.toUpperCase(),showPage('join')):showPage('auth');
-  }
+    jc?directJoin(jc):(showPage('dashboard'),loadTeams());
+  }else{S.uid=null;document.getElementById('nav-u').textContent='';document.getElementById('nav-out').classList.add('hidden');showPage('auth')}
 });
+
+// ── DIRECT JOIN (no username, no code screen) ─────────────────
+async function directJoin(code){
+  const sn=await get(ref(db,`health-sessions/${code.toUpperCase()}`));
+  if(!sn.exists()){showPage('dashboard');loadTeams();return}
+  const s=sn.val();
+  if(s.status==='closed'||s.status==='revealed'){
+    window._pdfSess=s;await renderResults(s,code.toUpperCase());showPage('res');
+    document.getElementById('res-back').onclick=()=>{showPage('dashboard');loadTeams()};return;
+  }
+  const pid=gid();S.pid=pid;S.sid=code.toUpperCase();
+  await update(ref(db,`health-sessions/${code.toUpperCase()}/participants/${pid}`),{joinedAt:Date.now()});
+  renderVoteUI(s);showPage('vote');
+  safeUnsub(_jnUnsub);
+  _jnUnsub=onValue(ref(db,`health-sessions/${code.toUpperCase()}/status`),sn2=>{
+    if(sn2.val()==='revealed'){
+      get(ref(db,`health-sessions/${code.toUpperCase()}`)).then(async sn3=>{
+        if(!sn3.exists())return;window._pdfSess=sn3.val();
+        await renderResults(sn3.val(),code.toUpperCase());showPage('res');
+        document.getElementById('res-back').onclick=()=>{showPage('dashboard');loadTeams()};
+      });
+    }
+  });
+}
 
 // ── CATEGORY EDITOR ───────────────────────────────────────────
 window.ntAddCat=()=>{S.ntCats.push({icon:'📌',name:'',desc:''});renderNtCats()};
 window.ntRemoveCat=i=>{S.ntCats.splice(i,1);renderNtCats()};
-window.ntUpdateCat=(i,field,val)=>{S.ntCats[i][field]=val};
+window.ntUpdateCat=(i,f,v)=>{if(S.ntCats[i])S.ntCats[i][f]=v};
 function renderNtCats(){
   document.getElementById('nt-cats').innerHTML=S.ntCats.map((c,i)=>`
     <div class="cat-editor">
       <div class="cat-editor-top">
-        <input class="cat-icon-inp" type="text" value="${c.icon}" placeholder="🎯" oninput="ntUpdateCat(${i},'icon',this.value)" style="width:60px;text-align:center;font-size:1.3rem"/>
-        <input class="cat-name-inp" type="text" value="${c.name}" placeholder="Category name *" oninput="ntUpdateCat(${i},'name',this.value)"/>
+        <input type="text" value="${c.icon||''}" placeholder="🎯" oninput="ntUpdateCat(${i},'icon',this.value)" style="width:60px;text-align:center;font-size:1.3rem"/>
+        <input type="text" value="${c.name||''}" placeholder="Category name *" oninput="ntUpdateCat(${i},'name',this.value)"/>
         <button class="crm" onclick="ntRemoveCat(${i})">✕</button>
       </div>
-      <input type="text" value="${c.desc||''}" placeholder="Short description shown below the question…" oninput="ntUpdateCat(${i},'desc',this.value)" style="font-size:.82rem"/>
+      <input type="text" value="${c.desc||''}" placeholder="Short description shown to voters…" oninput="ntUpdateCat(${i},'desc',this.value)" style="font-size:.82rem"/>
     </div>`).join('');
 }
 window.openNewTeamModal=()=>{S.ntCats=DC.map(c=>({...c}));renderNtCats();showModal('m-nt')};
 
-// ── NEW SESSION DROPDOWNS ─────────────────────────────────────
-function initSessionDropdowns(){
+// ── SESSION DROPDOWNS ─────────────────────────────────────────
+function initDropdowns(){
   const now=new Date();const yr=now.getFullYear();const q=nowQ();
-  // Year: 2 years before to 2 years after
   const yrSel=document.getElementById('ns-yr');yrSel.innerHTML='';
   for(let y=yr-2;y<=yr+2;y++){const o=document.createElement('option');o.value=y;o.textContent=y;if(y===yr)o.selected=true;yrSel.appendChild(o)}
-  // Quarter
   const qSel=document.getElementById('ns-q');qSel.innerHTML='';
   for(let i=1;i<=4;i++){const o=document.createElement('option');o.value=i;o.textContent=`Q${i}`;if(i===q)o.selected=true;qSel.appendChild(o)}
-  // Sprint 1-10
   const spSel=document.getElementById('ns-sp');spSel.innerHTML='';
   for(let i=1;i<=10;i++){const o=document.createElement('option');o.value=i;o.textContent=`S${String(i).padStart(2,'0')}`;spSel.appendChild(o)}
 }
-
-function buildSprintCode(yr,q,sp){
-  // PI format: PI YY.Q SXX  e.g. PI 26.2 S01
-  const yy=String(yr).slice(-2);
-  return `PI ${yy}.${q} S${String(sp).padStart(2,'0')}`;
-}
+const sprintCode=(yr,q,sp)=>`PI ${String(yr).slice(-2)}.${q} S${String(sp).padStart(2,'0')}`;
 
 // ── TEAMS ─────────────────────────────────────────────────────
 window.loadTeams=async()=>{
@@ -407,9 +391,11 @@ window.loadTeams=async()=>{
 window.createTeam=async()=>{
   const name=document.getElementById('nt-n').value.trim();const desc=document.getElementById('nt-d').value.trim();
   if(!name){alert('Team name required');return}
-  // Sync from DOM inputs
+  // Sync edits from DOM
   document.querySelectorAll('#nt-cats .cat-editor').forEach((el,i)=>{
-    if(S.ntCats[i]){S.ntCats[i].icon=el.querySelector('.cat-icon-inp').value.trim()||'📌';S.ntCats[i].name=el.querySelector('.cat-name-inp').value.trim();S.ntCats[i].desc=el.querySelectorAll('input')[2]?.value.trim()||''}
+    if(!S.ntCats[i])return;
+    const inputs=el.querySelectorAll('input');
+    S.ntCats[i].icon=inputs[0].value.trim()||'📌';S.ntCats[i].name=inputs[1].value.trim();S.ntCats[i].desc=inputs[2].value.trim();
   });
   const cats=S.ntCats.filter(c=>c.name.trim());
   if(!cats.length){alert('Add at least one category');return}
@@ -424,10 +410,45 @@ window.openTeam=async tid=>{
   showPage('team');loadSessionTree();
 };
 
-window.deleteTeam=async()=>{
-  const sn=await get(ref(db,`users/${S.uid}/teams/${S.tid}/sessions`));
-  if(sn.exists())for(const sid of Object.keys(sn.val()||{}))await remove(ref(db,`health-sessions/${sid}`));
-  await remove(ref(db,`users/${S.uid}/teams/${S.tid}`));hideModal('m-dt');loadTeams();
+// ── GRANULAR DELETE ───────────────────────────────────────────
+// type: 'team' | 'year' | 'quarter' | 'sprint'
+window.confirmDel=function(type,yr,q,sid){
+  const titles={team:'Delete Entire Team?',year:`Delete Year ${yr}?`,quarter:`Delete Quarter Q${q} (${yr})?`,sprint:'Delete this Sprint?'};
+  const msgs={
+    team:'This will permanently delete the team and ALL sessions across all years.',
+    year:`This will permanently delete ALL sessions in ${yr}.`,
+    quarter:`This will permanently delete ALL sessions in ${yr} Q${q}.`,
+    sprint:'This will permanently delete this sprint session and its data.'
+  };
+  document.getElementById('del-title').textContent='⚠️ '+titles[type];
+  document.getElementById('del-msg').textContent=msgs[type];
+  document.getElementById('del-confirm-btn').onclick=()=>execDel(type,yr,q,sid);
+  showModal('m-del');
+};
+
+window.execDel=async function(type,yr,q,sid){
+  hideModal('m-del');
+  const sessSnap=await get(ref(db,`users/${S.uid}/teams/${S.tid}/sessions`));
+  if(!sessSnap.exists()){if(type==='team'){await remove(ref(db,`users/${S.uid}/teams/${S.tid}`));loadTeams();}return}
+  const all=Object.entries(sessSnap.val()).map(([id,s])=>({id,...s}));
+
+  let toDelete=[];
+  if(type==='team') toDelete=all;
+  else if(type==='year') toDelete=all.filter(s=>String(s.year)===String(yr));
+  else if(type==='quarter') toDelete=all.filter(s=>String(s.year)===String(yr)&&String(s.quarter)===String(q));
+  else if(type==='sprint') toDelete=all.filter(s=>s.id===sid);
+
+  for(const s of toDelete){
+    await remove(ref(db,`health-sessions/${s.id}`));
+    await remove(ref(db,`users/${S.uid}/teams/${S.tid}/sessions/${s.id}`));
+  }
+  if(type==='team'){
+    await remove(ref(db,`users/${S.uid}/teams/${S.tid}`));
+    loadTeams();
+  }else{
+    await update(ref(db,`users/${S.uid}/teams/${S.tid}`),{sc:Math.max(0,(S.td.sc||0)-toDelete.length)});
+    loadSessionTree();
+  }
 };
 
 // ── SESSION TREE ──────────────────────────────────────────────
@@ -436,25 +457,49 @@ async function loadSessionTree(){
   const sn=await get(ref(db,`users/${S.uid}/teams/${S.tid}/sessions`));
   if(!sn.exists()||!Object.keys(sn.val()||{}).length){el.innerHTML='<div style="color:var(--muted);padding:1rem">No sessions yet. Start a new session!</div>';return}
   const sessions=Object.entries(sn.val()).map(([id,s])=>({id,...s}));
-  // Group: year > quarter > sprint
   const tree={};
   sessions.forEach(s=>{
-    const yr=s.year||'—';const q=`Q${s.quarter||'?'}`;
+    const yr=String(s.year||'—');const q=String(s.quarter||'?');
     if(!tree[yr])tree[yr]={};if(!tree[yr][q])tree[yr][q]=[];tree[yr][q].push(s);
   });
   let html='';
   Object.keys(tree).sort().reverse().forEach(yr=>{
-    html+=`<div class="yr-block"><div class="yr-hd" onclick="tgl('yr-${yr}')"><span>📅</span><span class="yr-lbl">${yr}</span><span style="margin-left:auto;color:var(--muted);font-size:.8rem">${Object.values(tree[yr]).flat().length} sessions</span></div><div id="yr-${yr}">`;
+    const yrCount=Object.values(tree[yr]).flat().length;
+    html+=`<div class="yr-block">
+      <div class="yr-hd">
+        <span onclick="tgl('yr-${yr}')" style="flex:1;display:flex;align-items:center;gap:.6rem">
+          <span>📅</span><span class="yr-lbl">${yr}</span>
+          <span style="color:var(--muted);font-size:.8rem">${yrCount} session${yrCount!==1?'s':''}</span>
+        </span>
+        <button class="btn bd bxs" onclick="event.stopPropagation();confirmDel('year','${yr}',null,null)" title="Delete year ${yr}">🗑 ${yr}</button>
+      </div>
+      <div id="yr-${yr}">`;
     Object.keys(tree[yr]).sort().forEach(q=>{
       const qs=tree[yr][q].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
       const qid=`q-${yr}-${q}`;
-      html+=`<div class="pi-block"><div class="pi-hd" onclick="tgl('${qid}')"><span style="font-size:.9rem">🔁</span><span class="pi-lbl">${q}</span><span style="margin-left:auto;color:var(--muted);font-size:.78rem">${qs.length} sprint${qs.length!==1?'s':''}</span></div><div class="sp-block" id="${qid}">`;
-      html+=qs.map(s=>{
-        const badge=s.status==='open'?'<span class="sb so">🟢 Open</span>':'<span class="sb scl">⚪ Closed</span>';
-        const score=s.oa!=null?`<span class="${gc(s.oa)}" style="font-size:1.1rem;font-weight:800">${s.oa.toFixed(1)}</span>`:'<span style="color:var(--muted)">—</span>';
-        return`<div class="ssc"><div style="flex:1"><div class="ssn">${s.sprintCode||s.sprint} ${badge}</div><div class="ssm">${ft(s.createdAt)} · ${s.vc||0} votes</div></div><div style="display:flex;align-items:center;gap:.6rem">${score}<button class="btn bs bsm" onclick="openSA('${s.id}')">Manage</button>${s.status!=='open'&&s.oa!=null?`<button class="btn bs bsm" onclick="openRes('${s.id}')">Results</button>`:''}</div></div>`;
-      }).join('');
-      html+='</div></div>';
+      html+=`<div class="pi-block">
+        <div class="pi-hd">
+          <span onclick="tgl('${qid}')" style="flex:1;display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:.9rem">🔁</span><span class="pi-lbl">Q${q}</span>
+            <span style="color:var(--muted);font-size:.78rem">${qs.length} sprint${qs.length!==1?'s':''}</span>
+          </span>
+          <button class="btn bd bxs" onclick="event.stopPropagation();confirmDel('quarter','${yr}','${q}',null)" title="Delete Q${q}">🗑 Q${q}</button>
+        </div>
+        <div class="sp-block" id="${qid}">
+          ${qs.map(s=>{
+            const badge=s.status==='open'?'<span class="sb so">🟢 Open</span>':'<span class="sb scl">⚪ Closed</span>';
+            const score=s.oa!=null?`<span class="${gc(s.oa)}" style="font-size:1.1rem;font-weight:800">${s.oa.toFixed(1)}</span>`:'<span style="color:var(--muted)">—</span>';
+            return`<div class="ssc">
+              <div style="flex:1"><div class="ssn">${s.sprintCode||s.sprint} ${badge}</div><div class="ssm">${ft(s.createdAt)} · ${s.vc||0} votes</div></div>
+              <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">${score}
+                <button class="btn bs bsm" onclick="openSA('${s.id}')">Manage</button>
+                ${s.status!=='open'&&s.oa!=null?`<button class="btn bs bsm" onclick="openRes('${s.id}')">Results</button>`:''}
+                <button class="btn bd bxs" onclick="confirmDel('sprint',null,null,'${s.id}')" title="Delete sprint">🗑</button>
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
     });
     html+='</div></div>';
   });
@@ -463,31 +508,30 @@ async function loadSessionTree(){
 window.tgl=id=>{const el=document.getElementById(id);if(el)el.style.display=el.style.display==='none'?'':'none'};
 
 // ── NEW SESSION ───────────────────────────────────────────────
-window.openNewSession=()=>{initSessionDropdowns();document.getElementById('ns-oq').value='';const cats=S.td?.categories||[];document.getElementById('ns-cats-info').textContent='Categories: '+cats.map(c=>c.icon+' '+c.name).join(', ');showModal('m-ns')};
+window.openNewSession=()=>{
+  initDropdowns();document.getElementById('ns-oq').value='';
+  const cats=S.td?.categories||[];
+  document.getElementById('ns-cats-info').textContent='Categories: '+cats.map(c=>c.icon+' '+c.name).join(', ');
+  showModal('m-ns');
+};
 
 window.createSession=async()=>{
-  const yr=document.getElementById('ns-yr').value;
-  const q=document.getElementById('ns-q').value;
-  const sp=document.getElementById('ns-sp').value;
+  const yr=document.getElementById('ns-yr').value;const q=document.getElementById('ns-q').value;const sp=document.getElementById('ns-sp').value;
   const oq=document.getElementById('ns-oq').value.trim();
-  const sprintCode=buildSprintCode(yr,q,sp);
-  const code=gc4();
-  const sd={code,year:yr,quarter:q,sprint:sp,sprintCode,openQuestion:oq||null,teamId:S.tid,teamName:S.td.name,ownerId:S.uid,categories:S.td.categories||[],status:'open',participants:{},votes:{},createdAt:Date.now(),vc:0,oa:null};
+  const sc=sprintCode(yr,q,sp);const code=gc4();
+  const sd={code,year:yr,quarter:q,sprint:sp,sprintCode:sc,openQuestion:oq||null,teamId:S.tid,teamName:S.td.name,ownerId:S.uid,categories:S.td.categories||[],status:'open',participants:{},votes:{},createdAt:Date.now(),vc:0,oa:null};
   await set(ref(db,`health-sessions/${code}`),sd);
-  await set(ref(db,`users/${S.uid}/teams/${S.tid}/sessions/${code}`),{year:yr,quarter:q,sprint:sp,sprintCode,status:'open',createdAt:Date.now(),vc:0,oa:null,id:code});
+  await set(ref(db,`users/${S.uid}/teams/${S.tid}/sessions/${code}`),{year:yr,quarter:q,sprint:sp,sprintCode:sc,status:'open',createdAt:Date.now(),vc:0,oa:null,id:code});
   const cn=await get(ref(db,`users/${S.uid}/teams/${S.tid}/sc`));
   await update(ref(db,`users/${S.uid}/teams/${S.tid}`),{sc:(cn.val()||0)+1});
   hideModal('m-ns');openSA(code);loadSessionTree();
 };
 
-// ── SESSION ADMIN (listener fix) ─────────────────────────────
+// ── SESSION ADMIN ─────────────────────────────────────────────
 window.openSA=async sid=>{
-  // Clean up previous listener safely
   safeUnsub(_saUnsub);_saUnsub=null;
   S.sid=sid;showPage('sa');
   document.getElementById('sa-back').onclick=()=>openTeam(S.tid);
-
-  // onValue returns an unsubscribe function — store that, NOT the ref
   _saUnsub=onValue(ref(db,`health-sessions/${sid}`),sn=>{
     if(!sn.exists())return;const s=sn.val();
     const j=Object.keys(s.participants||{}).length;const sub=Object.keys(s.votes||{}).length;
@@ -522,7 +566,6 @@ function renderLive(s){
 }
 
 window.copyLink=()=>{navigator.clipboard.writeText(window._saLink||'').then(()=>{const b=document.querySelector('[onclick="copyLink()"]');b.textContent='✅ Copied!';setTimeout(()=>b.textContent='📋 Copy Link',2000)})};
-
 window.revealNow=async()=>{
   const sid=S.sid;const sn=await get(ref(db,`health-sessions/${sid}`));if(!sn.exists())return;
   const s=sn.val();const cats=s.categories||[];const votes=Object.values(s.votes||{});
@@ -546,8 +589,8 @@ async function renderResults(s,sid){
   const cats=s.categories||[];const r=s.results||{};
   const avgs=r.avgs||cats.map(()=>0);const ov=r.overall||0;const vc=r.voterCount||0;
   document.getElementById('res-lbl').textContent=`${s.teamName} · ${s.sprintCode||s.sprint} · ${ft(s.createdAt)} · ${vc} votes`;
-  const posAvgs=avgs.filter(v=>v>0);
-  const low=posAvgs.length?Math.min(...posAvgs):0;const high=posAvgs.length?Math.max(...posAvgs):0;
+  const pos=avgs.filter(v=>v>0);
+  const low=pos.length?Math.min(...pos):0;const high=pos.length?Math.max(...pos):0;
   document.getElementById('res-sum').innerHTML=`<div class="sc2"><div class="big ${gc(ov)}">${ov.toFixed(1)}</div><div class="lbl">${ge(ov)} Overall</div></div><div class="sc2"><div class="big cg">${high.toFixed(1)}</div><div class="lbl">👆 Highest</div></div><div class="sc2"><div class="big ${gc(low)}">${low.toFixed(1)}</div><div class="lbl">👇 Lowest</div></div>`;
   const sorted=cats.map((c,i)=>({...c,avg:avgs[i]})).sort((a,b)=>a.avg-b.avg);
   document.getElementById('res-list').innerHTML=sorted.map(c=>`<div class="ri"><div class="ric">${c.icon}</div><div class="rin"><div class="rnm">${c.name}</div>${c.desc?`<div class="cat-desc">${c.desc}</div>`:''}<div class="rbw"><div class="rb ${gb(c.avg)}" style="width:${(c.avg/5)*100}%"></div></div></div><div class="rsc ${gc(c.avg)}">${c.avg.toFixed(1)}</div></div>`).join('');
@@ -579,7 +622,7 @@ window.compTab=async mode=>{
   document.querySelectorAll('#page-comp .tab').forEach((t,i)=>t.classList.toggle('active',['sprint','quarter','year'][i]===mode));
   if(!_cs.length){document.getElementById('comp-content').innerHTML='<div class="al aw">No closed sessions yet.</div>';return}
   if(mode==='sprint'){
-    const sorted=_cs.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).slice(-5);
+    const sorted=[..._cs].sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).slice(-5);
     if(sorted.length<2){document.getElementById('comp-content').innerHTML='<div class="al ai">Need at least 2 sessions.</div>';return}
     const full=await Promise.all(sorted.map(s=>get(ref(db,`health-sessions/${s.id}`)).then(sn=>sn.val())));
     const valid=full.filter(Boolean);const cats=valid[0]?.categories||[];
@@ -615,26 +658,7 @@ function catTableAvg(cats,groups){
   return`<div class="card"><div class="ct">Category Breakdown</div><div class="ox"><table class="ctbl"><thead><tr><th>Category</th>${groups.map(g=>`<th>${g.label}</th>`).join('')}<th>Trend</th></tr></thead><tbody>${cats.map((c,ci)=>{const vals=groups.map(g=>g.avgs[ci]||0);const d=vals[vals.length-1]-vals[0];const tr=Math.abs(d)<0.05?'<span class="chip csm">→</span>':d>0?`<span class="chip cu">↑ +${d.toFixed(1)}</span>`:`<span class="chip cdw">↓ ${d.toFixed(1)}</span>`;return`<tr><td>${c.icon} ${c.name}</td>${vals.map(v=>`<td class="${gc(v)}">${v.toFixed(1)}</td>`).join('')}<td>${tr}</td></tr>`}).join('')}</tbody></table></div></div>`;
 }
 
-// ── JOIN & VOTE ───────────────────────────────────────────────
-window.joinSession=async()=>{
-  const code=(document.getElementById('jc').value||'').trim().toUpperCase();const name=(document.getElementById('jn').value||'').trim()||'Anonymous';
-  if(code.length<4){alert('Enter a valid 4-letter code');return}
-  const sn=await get(ref(db,`health-sessions/${code}`));if(!sn.exists()){alert('Session not found.');return}
-  const s=sn.val();if(s.status==='closed'){alert('This session is closed.');return}
-  const pid=gid();S.pid=pid;S.sid=code;
-  await update(ref(db,`health-sessions/${code}/participants/${pid}`),{name,joinedAt:Date.now()});
-  if(s.status==='revealed'){window._pdfSess=s;await renderResults(s,code);showPage('res');document.getElementById('res-back').onclick=()=>showPage('join')}
-  else{
-    renderVoteUI(s);showPage('vote');
-    safeUnsub(_jnUnsub);
-    _jnUnsub=onValue(ref(db,`health-sessions/${code}/status`),sn2=>{
-      if(sn2.val()==='revealed'){
-        get(ref(db,`health-sessions/${code}`)).then(async sn3=>{if(!sn3.exists())return;window._pdfSess=sn3.val();await renderResults(sn3.val(),code);showPage('res');document.getElementById('res-back').onclick=()=>showPage('join')});
-      }
-    });
-  }
-};
-
+// ── VOTING ────────────────────────────────────────────────────
 function renderVoteUI(s){
   const cats=s.categories||[];const emojis=["😞","😕","😐","🙂","😍"];
   let html=cats.map((c,ci)=>`
@@ -647,9 +671,7 @@ function renderVoteUI(s){
   document.getElementById('vote-cats').innerHTML=html;
   S.votes={};
 }
-
 window.selVote=(ci,score)=>{S.votes[ci]=score;for(let i=1;i<=5;i++)document.getElementById(`v-${ci}-${i}`)?.classList.toggle('sel',i===score)};
-
 window.submitVote=async()=>{
   const code=S.sid;const sn=await get(ref(db,`health-sessions/${code}/categories`));const cc=sn.exists()?sn.val().length:0;
   if(Object.keys(S.votes).length<cc){alert(`Please rate all ${cc} categories.`);return}
@@ -659,7 +681,7 @@ window.submitVote=async()=>{
   const vs=await get(ref(db,`health-sessions/${code}/votes`));
   await update(ref(db,`health-sessions/${code}`),{vc:Object.keys(vs.val()||{}).length});
   showPage('sub');
-  document.getElementById('sub-link-box').innerHTML=`📊 Results will be visible once the facilitator reveals them. <a href="${location.origin}${location.pathname}?join=${code}" target="_blank">Check back here.</a>`;
+  document.getElementById('sub-link-box').innerHTML=`📊 Results will be visible once the facilitator reveals. <a href="${location.origin}${location.pathname}?join=${code}" target="_blank">Check back here.</a>`;
 };
 
 // ── PDF ───────────────────────────────────────────────────────
@@ -678,20 +700,19 @@ window.exportPDF=async()=>{
   const sorted=[...cats].map((c,i)=>({...c,avg:avgs[i]})).sort((a,b)=>a.avg-b.avg);
   doc.setTextColor(13,115,119);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('Category Scores',M,y);y+=7;
   sorted.forEach(c=>{
-    ck(c.desc?22:16);
-    doc.setFillColor(245,248,250);doc.roundedRect(M,y,W-M*2,c.desc?20:14,2,2,'F');
+    const h=c.desc?22:16;ck(h);
+    doc.setFillColor(245,248,250);doc.roundedRect(M,y,W-M*2,h,2,2,'F');
     doc.setTextColor(30,30,30);doc.setFontSize(9.5);doc.setFont('helvetica','bold');doc.text(`${c.icon} ${c.name}`,M+3,y+8);
-    if(c.desc){doc.setFontSize(8);doc.setFont('helvetica','italic');doc.setTextColor(120,120,120);doc.text(c.desc,M+3,y+14,{maxWidth:W-M*2-40})}
-    const bW=55,bX=W-M-bW-18,bY=c.desc?y+8:y+4;
-    doc.setFillColor(220,220,220);doc.roundedRect(bX,bY,bW,5,2,2,'F');
+    if(c.desc){doc.setFontSize(7.5);doc.setFont('helvetica','italic');doc.setTextColor(130,130,130);const dl=doc.splitTextToSize(c.desc,W-M*2-45);doc.text(dl[0],M+3,y+14)}
+    const bW=55,bX=W-M-bW-18;
+    doc.setFillColor(220,220,220);doc.roundedRect(bX,y+5,bW,5,2,2,'F');
     const fill=(c.avg/5)*bW;const rgb=c.avg>=4?[0,200,150]:c.avg>=3?[244,162,97]:[230,57,70];
-    doc.setFillColor(...rgb);if(fill>0)doc.roundedRect(bX,bY,fill,5,2,2,'F');
+    doc.setFillColor(...rgb);if(fill>0)doc.roundedRect(bX,y+5,fill,5,2,2,'F');
     doc.setTextColor(...rgb);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(c.avg.toFixed(1),W-M-3,y+9,{align:'right'});
-    y+=c.desc?24:18;
+    y+=h+2;
   });
   const votes=Object.values(s.votes||{});const comments=votes.map(v=>v.comment).filter(Boolean);
   if(s.openQuestion&&comments.length){ck(20);doc.setTextColor(13,115,119);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text(`Comments: ${s.openQuestion}`,M,y);y+=8;comments.forEach(c=>{const lines=doc.splitTextToSize(`"${c}"`,W-M*2-10);ck(lines.length*5+6);doc.setFillColor(240,250,248);doc.roundedRect(M,y,W-M*2,lines.length*5+4,2,2,'F');doc.setTextColor(80,80,80);doc.setFontSize(8.5);doc.setFont('helvetica','italic');doc.text(lines,M+3,y+5);y+=lines.length*5+8})}
-  // Prev comparison
   if(S.tid&&S.uid){const sn=await get(ref(db,`users/${S.uid}/teams/${S.tid}/sessions`));if(sn.exists()){const list=Object.entries(sn.val()).map(([id,ss])=>({id,...ss})).filter(ss=>ss.status==='closed'&&ss.id!==s.code&&ss.oa!=null).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));if(list.length){const ps=await get(ref(db,`health-sessions/${list[0].id}`));if(ps.exists()){const prev=ps.val();const pa=prev.results?.avgs||[];ck(25);doc.setTextColor(13,115,119);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text(`vs Previous (${prev.sprintCode||prev.sprint})`,M,y);y+=8;cats.forEach((c,i)=>{ck(14);const cv=avgs[i];const pv=pa[i]||0;const d=cv-pv;const arrow=Math.abs(d)<0.05?'→':d>0?`↑ +${d.toFixed(1)}`:`↓ ${d.toFixed(1)}`;const rgb2=Math.abs(d)<0.05?[107,127,163]:d>0?[0,200,150]:[230,57,70];doc.setFillColor(245,248,250);doc.roundedRect(M,y,W-M*2,12,2,2,'F');doc.setTextColor(30,30,30);doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text(`${c.icon} ${c.name}`,M+3,y+8);doc.setTextColor(...rgb2);doc.setFont('helvetica','bold');doc.text(`${cv.toFixed(1)} ${arrow}`,W-M-3,y+8,{align:'right'});y+=15})}}}  }
   if(_cs&&_cs.length>=2){const recent=[..._cs].sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).slice(-5);const full=await Promise.all(recent.map(ss=>get(ref(db,`health-sessions/${ss.id}`)).then(sn2=>sn2.val())));const valid=full.filter(Boolean);if(valid.length>=2){ck(30);doc.setTextColor(13,115,119);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('Sprint Trend (last 5)',M,y);y+=8;cats.forEach((c,ci)=>{ck(14);doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.setTextColor(60,60,60);doc.text(`${c.icon} ${c.name}`,M,y);const step=(W-M*2-40)/valid.length;valid.forEach((vs,vi)=>{const val=(vs.results?.avgs||[])[ci]||0;if(!val)return;const rgb3=val>=4?[0,200,150]:val>=3?[244,162,97]:[230,57,70];const bx=M+40+vi*step;doc.setFillColor(...rgb3);doc.circle(bx,y-1,2,'F');doc.setTextColor(...rgb3);doc.setFontSize(7);doc.text(val.toFixed(1),bx,y+5,{align:'center'})});y+=14})}}
   doc.setFontSize(7.5);doc.setTextColor(160,160,160);doc.setFont('helvetica','normal');doc.text('Generated by Team Health Check · hakanadiguzel.com',W/2,287,{align:'center'});
