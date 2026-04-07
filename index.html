@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Team Health Check</title>
+<title>ART Health Check</title>
 <style>
 :root{--bg:#0a1628;--surface:#111f35;--surface2:#172540;--accent:#00c896;--yellow:#f4a261;--red:#e63946;--text:#e8edf5;--muted:#6b7fa3;--border:rgba(255,255,255,0.08);--green:#00c896;--r:14px}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -14,7 +14,7 @@ nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1.
 .nd{width:9px;height:9px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
 .nr{display:flex;align-items:center;gap:.8rem}
-.nu{font-size:.82rem;color:var(--muted)}
+.nu{font-size:.82rem;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .pg{max-width:960px;margin:0 auto;padding:2rem 1rem}
 .hidden{display:none!important}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.8rem;margin-bottom:1.2rem}
@@ -93,12 +93,10 @@ textarea{resize:vertical;min-height:60px}
 .ox{overflow-x:auto}
 .cat-desc{font-size:.78rem;color:var(--muted);margin-top:.15rem;font-style:italic}
 .ns-badge{display:inline-flex;align-items:center;gap:.25rem;font-size:.72rem;font-weight:700;padding:.15rem .45rem;border-radius:6px;background:rgba(107,127,163,.15);color:var(--muted)}
-/* team cards in results */
 .team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.4rem;margin-bottom:1rem}
 .team-card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem}
 .team-card-name{font-weight:700;font-size:1rem}
 .team-score{font-size:1.6rem;font-weight:900}
-/* hierarchy */
 .yr-block{margin-bottom:1.4rem}
 .yr-hd{display:flex;align-items:center;gap:.6rem;padding:.5rem .8rem;background:var(--surface2);border-radius:10px;margin-bottom:.5rem;user-select:none}
 .yr-lbl{font-weight:700;font-size:1rem}
@@ -106,55 +104,64 @@ textarea{resize:vertical;min-height:60px}
 .pi-hd{display:flex;align-items:center;gap:.5rem;padding:.4rem .7rem;background:rgba(0,200,150,.07);border:1px solid rgba(0,200,150,.15);border-radius:9px;margin-bottom:.4rem;user-select:none}
 .pi-lbl{font-weight:600;font-size:.92rem;color:var(--accent)}
 .sp-block{margin-left:1rem}
-/* live */
 .lv-bar{display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem}
 .lv-lbl{font-size:.82rem;color:var(--muted);min-width:140px}
 .lv-track{flex:1;height:10px;background:var(--border);border-radius:5px;overflow:hidden}
 .lv-fill{height:100%;border-radius:5px;transition:width .5s ease}
 .lv-val{font-size:.82rem;font-weight:700;min-width:28px;text-align:right}
 .cmb2{background:var(--surface2);border-radius:10px;padding:.6rem .8rem;margin-top:.4rem;font-size:.85rem;color:var(--muted);font-style:italic}
+/* Google sign-in button */
+.g-btn{display:flex;align-items:center;justify-content:center;gap:.75rem;width:100%;padding:.85rem 1.5rem;border-radius:12px;border:1px solid var(--border);background:#fff;color:#3c4043;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:'Segoe UI',sans-serif}
+.g-btn:hover{box-shadow:0 4px 20px rgba(0,0,0,.25);transform:translateY(-1px)}
+.g-logo{width:20px;height:20px;flex-shrink:0}
 footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border-top:1px solid var(--border);margin-top:2rem}
 @media(max-width:600px){.sg{grid-template-columns:repeat(2,1fr)}.sg4{grid-template-columns:repeat(2,1fr)}.eb .em{font-size:1.2rem}}
 </style>
 </head>
 <body>
 <nav>
-  <div class="nb"><div class="nd"></div>💚 Team Health Check</div>
-  <div class="nr"><span class="nu" id="nav-u"></span><button class="btn bs bsm hidden" id="nav-out" onclick="doLogout()">Sign Out</button></div>
+  <div class="nb"><div class="nd"></div>💚 ART Health Check</div>
+  <div class="nr">
+    <span class="nu" id="nav-u"></span>
+    <button class="btn bs bsm hidden" id="nav-out" onclick="doLogout()">Sign Out</button>
+  </div>
 </nav>
 
 <!-- AUTH -->
 <div id="page-auth" class="pg hidden" style="max-width:420px">
-  <div style="text-align:center;padding:2rem 0 1.4rem"><div style="font-size:2.8rem;margin-bottom:.7rem">💚</div>
-  <h1 style="font-size:1.75rem;font-weight:800;margin-bottom:.35rem">Team Health Check</h1>
-  <p style="color:var(--muted);font-size:.88rem">Sign in to manage your teams &amp; ART sessions</p></div>
-  <div class="tabs"><button class="tab active" onclick="authTab('login')">Sign In</button><button class="tab" onclick="authTab('register')">Register</button></div>
-  <div class="card">
-    <div id="auth-err" class="al aw hidden"></div>
-    <div class="fg"><label>Email</label><input id="ae" type="email" placeholder="your@email.com"/></div>
-    <div class="fg"><label>Password</label><input id="ap" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')authSubmit()"/></div>
-    <button class="btn bp bf bl" onclick="authSubmit()" id="asb">Sign In</button>
+  <div style="text-align:center;padding:2.5rem 0 2rem">
+    <div style="font-size:3rem;margin-bottom:.8rem">💚</div>
+    <h1 style="font-size:1.9rem;font-weight:800;margin-bottom:.4rem">ART Health Check</h1>
+    <p style="color:var(--muted);font-size:.9rem;line-height:1.6">Track how your teams feel — sprint by sprint.<br/>Measure, compare, and improve together.</p>
+  </div>
+  <div class="card" style="text-align:center">
+    <div id="auth-err" class="al aw hidden" style="text-align:left"></div>
+    <button class="g-btn" onclick="signInGoogle()">
+      <svg class="g-logo" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continue with Google
+    </button>
+    <p style="color:var(--muted);font-size:.78rem;margin-top:1rem">Facilitators sign in to manage sessions.<br/>Participants join via a link — no sign-in needed.</p>
   </div>
 </div>
 
 <!-- DASHBOARD -->
 <div id="page-dashboard" class="pg hidden">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.4rem;flex-wrap:wrap;gap:.7rem">
-    <div><h1 style="font-size:1.55rem;font-weight:800">My Teams</h1><p style="color:var(--muted);font-size:.84rem;margin-top:.18rem">Manage your team health sessions</p></div>
-    <button class="btn bp" onclick="openNewTeamModal()">+ New Team</button>
+    <div><h1 style="font-size:1.55rem;font-weight:800">My ARTs</h1><p style="color:var(--muted);font-size:.84rem;margin-top:.18rem">Manage your ART health sessions</p></div>
+    <button class="btn bp" onclick="openNewTeamModal()">+ New ART</button>
   </div>
   <div id="teams-list"><div class="ld"><div class="sp"></div>Loading…</div></div>
 </div>
 
 <!-- TEAM ADMIN -->
 <div id="page-team" class="pg hidden">
-  <button class="btn bs" style="margin-bottom:1rem" onclick="showPage('dashboard');loadTeams()">← My Teams</button>
+  <button class="btn bs" style="margin-bottom:1rem" onclick="showPage('dashboard');loadTeams()">← My ARTs</button>
   <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.7rem;margin-bottom:1.4rem">
     <div><h1 id="t-name" style="font-size:1.45rem;font-weight:800"></h1><p id="t-meta" style="color:var(--muted);font-size:.82rem;margin-top:.18rem"></p></div>
     <div style="display:flex;gap:.55rem;flex-wrap:wrap">
       <button class="btn bp" onclick="openNewSession()">▶ New Session</button>
       <button class="btn bs" onclick="showComparison()">📊 Comparison</button>
-      <button class="btn bd bsm" onclick="confirmDel('team',null,null,null)">🗑 Delete Team</button>
+      <button class="btn bd bsm" onclick="confirmDel('team',null,null,null)">🗑 Delete ART</button>
     </div>
   </div>
   <div class="ct" style="margin-bottom:.7rem">Sessions — Year → Quarter → Sprint</div>
@@ -163,13 +170,13 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
 
 <!-- SESSION ADMIN -->
 <div id="page-sa" class="pg hidden">
-  <button class="btn bs" style="margin-bottom:1rem" id="sa-back">← Team</button>
+  <button class="btn bs" style="margin-bottom:1rem" id="sa-back">← ART</button>
   <div class="card" style="max-width:580px;margin:0 auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.9rem;flex-wrap:wrap;gap:.45rem">
       <div><div id="sa-title" style="font-weight:700;font-size:1.05rem"></div><div id="sa-meta" style="color:var(--muted);font-size:.78rem;margin-top:.1rem"></div></div>
       <div id="sa-badge"></div>
     </div>
-    <div class="cb"><div class="cd2" id="sa-code">----</div><div class="cs2">Share with your team</div></div>
+    <div class="cb"><div class="cd2" id="sa-code">----</div><div class="cs2">Share this code with your teams</div></div>
     <div style="margin:.75rem 0">
       <div style="font-size:.8rem;color:var(--muted);margin-bottom:.35rem">Direct link:</div>
       <div id="sa-link" style="background:var(--surface2);padding:.55rem .85rem;border-radius:8px;font-size:.78rem;word-break:break-all;color:var(--accent)"></div>
@@ -186,9 +193,8 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
 
 <!-- VOTING -->
 <div id="page-vote" class="pg hidden">
-  <div class="al ai" style="max-width:660px;margin:0 auto 1rem">🔒 Your votes are anonymous. "Not Sure" will be tracked separately and won't affect scores.</div>
-  <!-- Team selector -->
-  <div style="max-width:660px;margin:0 auto 1.4rem">
+  <div class="al ai" style="max-width:660px;margin:0 auto 1rem">🔒 Your votes are anonymous. <strong>Not Sure</strong> will be tracked separately and won't affect scores.</div>
+  <div id="vote-team-wrap" style="max-width:660px;margin:0 auto 1.4rem">
     <div class="card" style="padding:1.2rem">
       <label style="font-size:.95rem;font-weight:600;color:var(--text);margin-bottom:.6rem;display:block">👥 Select your team</label>
       <select id="vote-team-sel" style="font-size:1rem"></select>
@@ -202,37 +208,32 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
 <div id="page-sub" class="pg hidden" style="text-align:center;padding-top:4rem">
   <div style="font-size:3rem;margin-bottom:.9rem">✅</div>
   <h2 style="font-size:1.45rem;font-weight:800;margin-bottom:.45rem">Votes submitted!</h2>
-  <p style="color:var(--muted);max-width:380px;margin:0 auto 1.2rem">Results will be visible once the facilitator closes the session.</p>
+  <p style="color:var(--muted);max-width:380px;margin:0 auto 1.2rem">Thank you! Results will be visible once the facilitator closes the session.</p>
   <div class="al as" style="max-width:380px;margin:0 auto 1rem" id="sub-link-box"></div>
-  <p style="color:var(--muted);font-size:.83rem">You can close this tab safely.</p>
+  <p style="color:var(--muted);font-size:.83rem">You can safely close this tab.</p>
 </div>
 
 <!-- RESULTS -->
 <div id="page-res" class="pg hidden">
   <div style="max-width:860px;margin:0 auto">
     <div style="text-align:center;margin-bottom:1.4rem">
-      <div style="font-size:1.9rem;margin-bottom:.28rem">💚 Health Check Results</div>
+      <div style="font-size:1.9rem;margin-bottom:.28rem">💚 ART Health Check Results</div>
       <div id="res-lbl" style="color:var(--muted);font-size:.87rem"></div>
     </div>
-    <!-- ART overall -->
     <div class="card" id="res-art-card">
       <div class="ct">🚀 ART Overall</div>
       <div class="sg4" id="res-art-sum"></div>
       <div id="res-art-cats"></div>
     </div>
-    <!-- Team breakdown cards -->
     <div id="res-teams"></div>
-    <!-- Cross-team table -->
     <div id="res-table" class="card hidden">
-      <div class="ct">📊 Team Comparison Table</div>
+      <div class="ct">📊 Team Comparison</div>
       <div class="ox"><table class="ctbl" id="res-ctbl"></table></div>
     </div>
-    <!-- Open question comments -->
     <div id="res-comments"></div>
-    <!-- Prev sprint comparison -->
     <div id="res-prev"></div>
     <div style="display:flex;gap:.65rem;flex-wrap:wrap;justify-content:center;margin-top:1.2rem">
-      <button class="btn bp" onclick="exportPDF()">📄 PDF Report</button>
+      <button class="btn bp" onclick="exportPDF()">📄 Export PDF</button>
       <button class="btn bs" id="res-back">← Back</button>
     </div>
   </div>
@@ -240,8 +241,8 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
 
 <!-- COMPARISON -->
 <div id="page-comp" class="pg hidden">
-  <button class="btn bs" style="margin-bottom:1rem" id="comp-back">← Team</button>
-  <h2 style="font-size:1.35rem;font-weight:800;margin-bottom:.7rem" id="comp-title">Comparison</h2>
+  <button class="btn bs" style="margin-bottom:1rem" id="comp-back">← ART</button>
+  <h2 style="font-size:1.35rem;font-weight:800;margin-bottom:.7rem" id="comp-title">Trend Comparison</h2>
   <div class="tabs" style="max-width:380px">
     <button class="tab active" onclick="compTab('sprint')">Sprint</button>
     <button class="tab" onclick="compTab('quarter')">Quarter</button>
@@ -252,8 +253,8 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
 
 <!-- MODALS -->
 <div id="m-nt" class="mb hidden">
-  <div class="md"><div class="mt">+ New Team / ART</div>
-    <div class="fg"><label>Name *</label><input id="nt-n" type="text" placeholder="e.g. ART Phoenix" maxlength="40"/></div>
+  <div class="md"><div class="mt">+ New ART</div>
+    <div class="fg"><label>ART Name *</label><input id="nt-n" type="text" placeholder="e.g. ART Phoenix" maxlength="40"/></div>
     <div class="fg"><label>Description</label><input id="nt-d" type="text" placeholder="e.g. Android Automotive OS" maxlength="60"/></div>
     <div class="fg">
       <label>Health Categories</label>
@@ -261,28 +262,27 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
       <button class="btn bs bsm" onclick="ntAddCat()" style="margin-top:.3rem">+ Add Category</button>
     </div>
     <div style="display:flex;gap:.55rem;margin-top:1.1rem">
-      <button class="btn bp bf" onclick="createTeam()">Create</button>
+      <button class="btn bp bf" onclick="createTeam()">Create ART</button>
       <button class="btn bs bf" onclick="hideModal('m-nt')">Cancel</button>
     </div>
   </div>
 </div>
 
 <div id="m-ns" class="mb hidden">
-  <div class="md"><div class="mt">▶ New Session</div>
+  <div class="md"><div class="mt">▶ New Health Check Session</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.6rem;margin-bottom:.9rem">
       <div class="fg"><label>Year *</label><select id="ns-yr"></select></div>
       <div class="fg"><label>Quarter *</label><select id="ns-q"></select></div>
       <div class="fg"><label>Sprint *</label><select id="ns-sp"></select></div>
     </div>
-    <!-- ART Teams definition -->
     <div class="fg">
-      <label style="margin-bottom:.5rem;display:block">🏃 ART Teams <span style="color:var(--muted);font-weight:400">(participants will select their team when voting)</span></label>
+      <label style="margin-bottom:.5rem;display:block">🏃 Teams in this ART <span style="color:var(--muted);font-weight:400">(participants will select their team)</span></label>
       <div id="ns-art-teams" style="margin-bottom:.5rem"></div>
       <div style="display:flex;gap:.5rem">
-        <input id="ns-team-inp" type="text" placeholder="Team name, e.g. Team Falcon" maxlength="40" style="flex:1" onkeydown="if(event.key==='Enter')nsAddTeam()"/>
+        <input id="ns-team-inp" type="text" placeholder="e.g. Team Falcon" maxlength="40" style="flex:1" onkeydown="if(event.key==='Enter')nsAddTeam()"/>
         <button class="btn bs bsm" onclick="nsAddTeam()">+ Add</button>
       </div>
-      <div style="color:var(--muted);font-size:.76rem;margin-top:.35rem">Leave empty for single-team (classic) mode</div>
+      <div style="color:var(--muted);font-size:.76rem;margin-top:.35rem">Leave empty for single-team mode</div>
     </div>
     <div class="fg"><label>Open-ended question (optional)</label>
       <input id="ns-oq" type="text" placeholder="e.g. What should we focus on next sprint?" maxlength="120"/></div>
@@ -296,10 +296,10 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
 
 <div id="m-del" class="mb hidden">
   <div class="md">
-    <div class="mt" id="del-title">⚠️ Delete?</div>
+    <div class="mt" id="del-title">⚠️ Confirm Delete</div>
     <p id="del-msg" style="color:var(--muted);margin-bottom:1.4rem"></p>
     <div style="display:flex;gap:.55rem">
-      <button class="btn bd bf" id="del-confirm-btn">Yes, delete</button>
+      <button class="btn bd bf" id="del-confirm-btn">Yes, delete permanently</button>
       <button class="btn bs bf" onclick="hideModal('m-del')">Cancel</button>
     </div>
   </div>
@@ -308,11 +308,14 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import{getAuth,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import{getAuth,GoogleAuthProvider,signInWithPopup,signOut,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import{getDatabase,ref,set,get,update,remove,push,onValue}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const FC={apiKey:"AIzaSyAP6zjYpE67Z739DCDDWSGDxrbX1vZ5lvA",authDomain:"health-3ea73.firebaseapp.com",databaseURL:"https://health-3ea73-default-rtdb.europe-west1.firebasedatabase.app",projectId:"health-3ea73",storageBucket:"health-3ea73.firebasestorage.app",messagingSenderId:"226386560977",appId:"1:226386560977:web:e45614b73879c9223dc2f0"};
-const app=initializeApp(FC);const auth=getAuth(app);const db=getDatabase(app);
+const app=initializeApp(FC);
+const auth=getAuth(app);
+const provider=new GoogleAuthProvider();
+const db=getDatabase(app);
 
 const S={uid:null,tid:null,td:null,sid:null,pid:null,votes:{},ntCats:[]};
 let _saUnsub=null,_jnUnsub=null,_cs=[],_nsTeams=[];
@@ -339,37 +342,40 @@ const ft=ts=>ts?new Date(ts).toLocaleDateString('en-GB',{day:'2-digit',month:'sh
 const avg=a=>a.length?(a.reduce((x,y)=>x+y,0)/a.length):0;
 const nowQ=()=>Math.ceil((new Date().getMonth()+1)/3);
 const safeUnsub=fn=>{try{if(typeof fn==='function')fn()}catch(e){console.warn('unsub:',e)}};
-// Firebase keys can't contain . # $ / [ ] — replace with safe chars
-const safeKey=s=>s.replace(/[.#$\/\[\]]/g,'_');
+const safeKey=s=>s.replace(/[.#$/\[\]]/g,'_');
 
 window.showPage=p=>{document.querySelectorAll('[id^="page-"]').forEach(e=>e.classList.add('hidden'));document.getElementById('page-'+p)?.classList.remove('hidden');window.scrollTo(0,0)};
 window.showModal=id=>document.getElementById(id)?.classList.remove('hidden');
 window.hideModal=id=>document.getElementById(id)?.classList.add('hidden');
 
-// ── AUTH ──────────────────────────────────────────────────────
-let aMode='login';
-window.authTab=m=>{aMode=m;document.querySelectorAll('#page-auth .tab').forEach((t,i)=>t.classList.toggle('active',m==='login'?i===0:i===1));document.getElementById('asb').textContent=m==='login'?'Sign In':'Create Account';document.getElementById('auth-err').classList.add('hidden')};
-window.authSubmit=async()=>{
-  const e=document.getElementById('ae').value.trim(),p=document.getElementById('ap').value;
+// ── GOOGLE AUTH ───────────────────────────────────────────────
+window.signInGoogle=async()=>{
   const el=document.getElementById('auth-err');el.classList.add('hidden');
-  if(!e||!p){el.textContent='Please fill in all fields';el.classList.remove('hidden');return}
-  try{aMode==='login'?await signInWithEmailAndPassword(auth,e,p):await createUserWithEmailAndPassword(auth,e,p)}
-  catch(err){el.textContent=err.message.replace('Firebase: ','').replace(/\(.*\)/,'');el.classList.remove('hidden')}
+  try{await signInWithPopup(auth,provider)}
+  catch(err){el.textContent=err.message.replace('Firebase: ','').replace(/\(.*\)/,'').trim();el.classList.remove('hidden')}
 };
-window.doLogout=async()=>{safeUnsub(_saUnsub);_saUnsub=null;safeUnsub(_jnUnsub);_jnUnsub=null;await signOut(auth)};
+window.doLogout=async()=>{
+  safeUnsub(_saUnsub);_saUnsub=null;
+  safeUnsub(_jnUnsub);_jnUnsub=null;
+  await signOut(auth);
+};
 
 onAuthStateChanged(auth,u=>{
   const jc=new URLSearchParams(location.search).get('join');
   if(u){
-    S.uid=u.uid;document.getElementById('nav-u').textContent=u.email;document.getElementById('nav-out').classList.remove('hidden');
+    S.uid=u.uid;
+    document.getElementById('nav-u').textContent=u.displayName||u.email;
+    document.getElementById('nav-out').classList.remove('hidden');
     jc?directJoin(jc):(showPage('dashboard'),loadTeams());
   }else{
-    S.uid=null;document.getElementById('nav-u').textContent='';document.getElementById('nav-out').classList.add('hidden');
+    S.uid=null;
+    document.getElementById('nav-u').textContent='';
+    document.getElementById('nav-out').classList.add('hidden');
     jc?directJoin(jc):showPage('auth');
   }
 });
 
-// ── DIRECT JOIN ───────────────────────────────────────────────
+// ── DIRECT JOIN (no auth needed) ─────────────────────────────
 async function directJoin(code){
   const uc=code.toUpperCase();
   const sn=await get(ref(db,`health-sessions/${uc}`));
@@ -412,7 +418,7 @@ function renderNtCats(){
 }
 window.openNewTeamModal=()=>{S.ntCats=DC.map(c=>({...c}));renderNtCats();showModal('m-nt')};
 
-// ── ART TEAMS in new session ───────────────────────────────────
+// ── ART TEAMS ─────────────────────────────────────────────────
 window.nsAddTeam=()=>{
   const inp=document.getElementById('ns-team-inp');const v=inp.value.trim();
   if(!v||_nsTeams.includes(v))return;_nsTeams.push(v);inp.value='';renderNsTeams();
@@ -420,9 +426,8 @@ window.nsAddTeam=()=>{
 window.nsRemoveTeam=i=>{_nsTeams.splice(i,1);renderNsTeams()};
 function renderNsTeams(){
   document.getElementById('ns-art-teams').innerHTML=_nsTeams.length
-    ?_nsTeams.map((t,i)=>`<div style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.2);border-radius:8px;padding:.25rem .65rem;margin:.2rem;font-size:.85rem">
-      ${t}<button class="crm" style="font-size:.8rem" onclick="nsRemoveTeam(${i})">✕</button></div>`).join('')
-    :'<div style="color:var(--muted);font-size:.8rem">No teams added — single team mode</div>';
+    ?_nsTeams.map((t,i)=>`<div style="display:inline-flex;align-items:center;gap:.35rem;background:rgba(0,200,150,.1);border:1px solid rgba(0,200,150,.2);border-radius:8px;padding:.25rem .65rem;margin:.2rem;font-size:.85rem">${t}<button class="crm" style="font-size:.8rem" onclick="nsRemoveTeam(${i})">✕</button></div>`).join('')
+    :'<div style="color:var(--muted);font-size:.8rem">No teams added yet</div>';
 }
 
 // ── SESSION DROPDOWNS ─────────────────────────────────────────
@@ -437,17 +442,17 @@ function initDropdowns(){
 }
 const sprintCode=(yr,q,sp)=>`PI ${String(yr).slice(-2)}.${q} S${String(sp).padStart(2,'0')}`;
 
-// ── TEAMS ─────────────────────────────────────────────────────
+// ── ARTS (teams) ──────────────────────────────────────────────
 window.loadTeams=async()=>{
   showPage('dashboard');
   const sn=await get(ref(db,`users/${S.uid}/teams`));
   const l=document.getElementById('teams-list');
-  if(!sn.exists()||!Object.keys(sn.val()||{}).length){l.innerHTML='<div style="color:var(--muted);text-align:center;padding:2rem">No teams yet.</div>';return}
-  l.innerHTML=Object.entries(sn.val()).map(([id,t])=>`<div class="tc" onclick="openTeam('${id}')"><div><div class="tn">${t.name}</div><div class="tm">${t.desc||''} · ${t.sc||0} sessions</div></div><button class="btn bp bsm" onclick="event.stopPropagation();openTeam('${id}')">Open →</button></div>`).join('');
+  if(!sn.exists()||!Object.keys(sn.val()||{}).length){l.innerHTML='<div style="color:var(--muted);text-align:center;padding:2rem">No ARTs yet. Create your first one!</div>';return}
+  l.innerHTML=Object.entries(sn.val()).map(([id,t])=>`<div class="tc" onclick="openTeam('${id}')"><div><div class="tn">${t.name}</div><div class="tm">${t.desc||''} · ${t.sc||0} session${t.sc!==1?'s':''}</div></div><button class="btn bp bsm" onclick="event.stopPropagation();openTeam('${id}')">Open →</button></div>`).join('');
 };
 window.createTeam=async()=>{
   const name=document.getElementById('nt-n').value.trim();const desc=document.getElementById('nt-d').value.trim();
-  if(!name){alert('Name required');return}
+  if(!name){alert('ART name is required');return}
   document.querySelectorAll('#nt-cats .cat-editor').forEach((el,i)=>{
     if(!S.ntCats[i])return;const inp=el.querySelectorAll('input');
     S.ntCats[i].icon=inp[0].value.trim()||'📌';S.ntCats[i].name=inp[1].value.trim();S.ntCats[i].desc=inp[2].value.trim();
@@ -465,8 +470,8 @@ window.openTeam=async tid=>{
 
 // ── GRANULAR DELETE ───────────────────────────────────────────
 window.confirmDel=function(type,yr,q,sid){
-  const titles={team:'Delete Entire Team?',year:`Delete Year ${yr}?`,quarter:`Delete Quarter Q${q} (${yr})?`,sprint:'Delete this Sprint?'};
-  const msgs={team:'This will permanently delete the team and ALL sessions.',year:`Permanently deletes ALL sessions in ${yr}.`,quarter:`Permanently deletes ALL sessions in ${yr} Q${q}.`,sprint:'Permanently deletes this sprint and its data.'};
+  const titles={team:'Delete Entire ART?',year:`Delete all sessions in ${yr}?`,quarter:`Delete all sessions in Q${q} (${yr})?`,sprint:'Delete this sprint session?'};
+  const msgs={team:'This will permanently delete the ART and ALL its sessions. This cannot be undone.',year:`Permanently deletes ALL sessions in ${yr}.`,quarter:`Permanently deletes ALL sessions in ${yr} Q${q}.`,sprint:'Permanently deletes this sprint session and all its data.'};
   document.getElementById('del-title').textContent='⚠️ '+titles[type];
   document.getElementById('del-msg').textContent=msgs[type];
   document.getElementById('del-confirm-btn').onclick=()=>execDel(type,yr,q,sid);
@@ -491,22 +496,22 @@ window.execDel=async function(type,yr,q,sid){
 async function loadSessionTree(){
   const el=document.getElementById('sess-tree');el.innerHTML='<div class="ld"><div class="sp"></div></div>';
   const sn=await get(ref(db,`users/${S.uid}/teams/${S.tid}/sessions`));
-  if(!sn.exists()||!Object.keys(sn.val()||{}).length){el.innerHTML='<div style="color:var(--muted);padding:1rem">No sessions yet.</div>';return}
+  if(!sn.exists()||!Object.keys(sn.val()||{}).length){el.innerHTML='<div style="color:var(--muted);padding:1rem">No sessions yet. Start a new session!</div>';return}
   const sessions=Object.entries(sn.val()).map(([id,s])=>({id,...s}));
   const tree={};
   sessions.forEach(s=>{const yr=String(s.year||'—');const q=String(s.quarter||'?');if(!tree[yr])tree[yr]={};if(!tree[yr][q])tree[yr][q]=[];tree[yr][q].push(s)});
   let html='';
   Object.keys(tree).sort().reverse().forEach(yr=>{
     const yc=Object.values(tree[yr]).flat().length;
-    html+=`<div class="yr-block"><div class="yr-hd"><span onclick="tgl('yr-${yr}')" style="flex:1;display:flex;align-items:center;gap:.6rem"><span>📅</span><span class="yr-lbl">${yr}</span><span style="color:var(--muted);font-size:.8rem">${yc} session${yc!==1?'s':''}</span></span><button class="btn bd bxs" onclick="event.stopPropagation();confirmDel('year','${yr}',null,null)">🗑 ${yr}</button></div><div id="yr-${yr}">`;
+    html+=`<div class="yr-block"><div class="yr-hd"><span onclick="tgl('yr-${yr}')" style="flex:1;display:flex;align-items:center;gap:.6rem;cursor:pointer"><span>📅</span><span class="yr-lbl">${yr}</span><span style="color:var(--muted);font-size:.8rem">${yc} session${yc!==1?'s':''}</span></span><button class="btn bd bxs" onclick="event.stopPropagation();confirmDel('year','${yr}',null,null)">🗑 ${yr}</button></div><div id="yr-${yr}">`;
     Object.keys(tree[yr]).sort().forEach(q=>{
       const qs=tree[yr][q].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));const qid=`q-${yr}-${q}`;
-      html+=`<div class="pi-block"><div class="pi-hd"><span onclick="tgl('${qid}')" style="flex:1;display:flex;align-items:center;gap:.5rem"><span style="font-size:.9rem">🔁</span><span class="pi-lbl">Q${q}</span><span style="color:var(--muted);font-size:.78rem">${qs.length} sprint${qs.length!==1?'s':''}</span></span><button class="btn bd bxs" onclick="event.stopPropagation();confirmDel('quarter','${yr}','${q}',null)">🗑 Q${q}</button></div><div class="sp-block" id="${qid}">`;
+      html+=`<div class="pi-block"><div class="pi-hd"><span onclick="tgl('${qid}')" style="flex:1;display:flex;align-items:center;gap:.5rem;cursor:pointer"><span style="font-size:.9rem">🔁</span><span class="pi-lbl">Q${q}</span><span style="color:var(--muted);font-size:.78rem">${qs.length} sprint${qs.length!==1?'s':''}</span></span><button class="btn bd bxs" onclick="event.stopPropagation();confirmDel('quarter','${yr}','${q}',null)">🗑 Q${q}</button></div><div class="sp-block" id="${qid}">`;
       html+=qs.map(s=>{
         const badge=s.status==='open'?'<span class="sb so">🟢 Open</span>':'<span class="sb scl">⚪ Closed</span>';
         const score=s.oa!=null?`<span class="${gc(s.oa)}" style="font-size:1.1rem;font-weight:800">${s.oa.toFixed(1)}</span>`:'<span style="color:var(--muted)">—</span>';
         const artBadge=s.artTeams?.length?`<span class="chip csm">ART · ${s.artTeams.length} teams</span>`:'';
-        return`<div class="ssc"><div style="flex:1"><div class="ssn">${s.sprintCode||s.sprint} ${badge} ${artBadge}</div><div class="ssm">${ft(s.createdAt)} · ${s.vc||0} votes</div></div><div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">${score}<button class="btn bs bsm" onclick="openSA('${s.id}')">Manage</button>${s.status!=='open'&&s.oa!=null?`<button class="btn bs bsm" onclick="openRes('${s.id}')">Results</button>`:''}<button class="btn bd bxs" onclick="confirmDel('sprint',null,null,'${s.id}')">🗑</button></div></div>`;
+        return`<div class="ssc"><div style="flex:1"><div class="ssn">${s.sprintCode||s.sprint} ${badge} ${artBadge}</div><div class="ssm">${ft(s.createdAt)} · ${s.vc||0} vote${s.vc!==1?'s':''}</div></div><div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">${score}<button class="btn bs bsm" onclick="openSA('${s.id}')">Manage</button>${s.status!=='open'&&s.oa!=null?`<button class="btn bs bsm" onclick="openRes('${s.id}')">Results</button>`:''}<button class="btn bd bxs" onclick="confirmDel('sprint',null,null,'${s.id}')">🗑</button></div></div>`;
       }).join('');
       html+='</div></div>';
     });
@@ -551,11 +556,9 @@ window.openSA=async sid=>{
     document.getElementById('sa-link').textContent=lnk;window._saLink=lnk;
     document.getElementById('sa-j').textContent=j;document.getElementById('sa-s').textContent=sub;
     const ctrl=document.getElementById('sa-ctrl');
-    if(s.status==='open'){
-      ctrl.innerHTML=`<button class="btn bp bf bl" onclick="revealNow()">🎉 Reveal & Close Session</button><button class="btn bs bf" onclick="closeOnly()">🔒 Close (no reveal)</button>`;
-    }else{
-      ctrl.innerHTML=`<button class="btn bp bf" onclick="openRes('${sid}')">📊 View Results</button><button class="btn bs bf" onclick="reopenSess()">🔓 Reopen Session</button>`;
-    }
+    ctrl.innerHTML=s.status==='open'
+      ?`<button class="btn bp bf bl" onclick="revealNow()">🎉 Reveal & Close Session</button><button class="btn bs bf" onclick="closeOnly()">🔒 Close without revealing</button>`
+      :`<button class="btn bp bf" onclick="openRes('${sid}')">📊 View Results</button><button class="btn bs bf" onclick="reopenSess()">🔓 Reopen Session</button>`;
     renderLive(s);
   });
 };
@@ -563,16 +566,15 @@ function renderLive(s){
   const votes=Object.values(s.votes||{});const cats=s.categories||[];
   if(!votes.length){document.getElementById('sa-live').classList.add('hidden');return}
   document.getElementById('sa-live').classList.remove('hidden');
-  // ART: group by team for live view
   const artTeams=s.artTeams||[];
   const avgs=cats.map((_,ci)=>{const v=votes.filter(vt=>vt.scores?.[ci]!=='ns').map(vt=>Number(vt.scores?.[ci]??0)).filter(x=>x>0);return v.length?avg(v):0});
   const nsCount=cats.map((_,ci)=>votes.filter(vt=>vt.scores?.[ci]==='ns').length);
   const ov=avg(avgs.filter(v=>v>0));
   let html=`<div style="margin-bottom:.8rem;color:var(--muted);font-size:.83rem">${votes.length} vote${votes.length!==1?'s':''} · Overall: <strong class="${gc(ov)}">${ov.toFixed(1)}</strong>`;
-  if(artTeams.length){const teamCounts={};votes.forEach(v=>{if(v.team)teamCounts[v.team]=(teamCounts[v.team]||0)+1});html+=` · Teams: `+artTeams.map(t=>`${t} (${teamCounts[t]||0})`).join(', ')}
+  if(artTeams.length){const tc={};votes.forEach(v=>{if(v.team)tc[v.team]=(tc[v.team]||0)+1});html+=` · `+artTeams.map(t=>`${t}: ${tc[t]||0}`).join(', ')}
   html+='</div>';
   cats.forEach((c,i)=>{if(!avgs[i])return;
-    html+=`<div class="lv-bar"><div class="lv-lbl">${c.icon} ${c.name}</div><div class="lv-track"><div class="lv-fill ${gb(avgs[i])}" style="width:${(avgs[i]/5)*100}%"></div></div><div class="lv-val ${gc(avgs[i])}">${avgs[i].toFixed(1)}</div>${nsCount[i]?`<div style="font-size:.72rem;color:var(--muted);min-width:55px">❓ ${nsCount[i]} NS</div>`:''}</div>`
+    html+=`<div class="lv-bar"><div class="lv-lbl">${c.icon} ${c.name}</div><div class="lv-track"><div class="lv-fill ${gb(avgs[i])}" style="width:${(avgs[i]/5)*100}%"></div></div><div class="lv-val ${gc(avgs[i])}">${avgs[i].toFixed(1)}</div>${nsCount[i]?`<div style="font-size:.72rem;color:var(--muted);min-width:55px">❓ ${nsCount[i]}</div>`:''}</div>`
   });
   const comments=votes.map(v=>v.comment).filter(Boolean);
   if(s.openQuestion&&comments.length){html+=`<hr class="hr"/><div style="font-size:.83rem;color:var(--muted);margin-bottom:.5rem">💬 ${s.openQuestion}</div>`;html+=comments.map(c=>`<div class="cmb2">"${c}"</div>`).join('')}
@@ -583,14 +585,8 @@ window.revealNow=async()=>{
   const sid=S.sid;const sn=await get(ref(db,`health-sessions/${sid}`));if(!sn.exists())return;
   const s=sn.val();const cats=s.categories||[];const votes=Object.values(s.votes||{});
   const artTeams=s.artTeams||[];
-  // ART: compute per-team avgs
-  const computeAvgs=(filteredVotes)=>{
-    return cats.map((_,ci)=>{
-      const v=filteredVotes.filter(vt=>vt.scores?.[ci]!=='ns').map(vt=>Number(vt.scores?.[ci]??0)).filter(x=>x>0);
-      return v.length?avg(v):0;
-    });
-  };
-  const computeNs=(filteredVotes)=>cats.map((_,ci)=>filteredVotes.filter(vt=>vt.scores?.[ci]==='ns').length);
+  const computeAvgs=fv=>cats.map((_,ci)=>{const v=fv.filter(vt=>vt.scores?.[ci]!=='ns').map(vt=>Number(vt.scores?.[ci]??0)).filter(x=>x>0);return v.length?avg(v):0});
+  const computeNs=fv=>cats.map((_,ci)=>fv.filter(vt=>vt.scores?.[ci]==='ns').length);
   const allAvgs=computeAvgs(votes);const allNs=computeNs(votes);
   const ov=avg(allAvgs.filter(v=>v>0));const vc=votes.length;
   let teamResults=null;
@@ -598,8 +594,7 @@ window.revealNow=async()=>{
     teamResults={};
     artTeams.forEach(t=>{
       const tv=votes.filter(v=>v.team===t);
-      const ta=computeAvgs(tv);const tns=computeNs(tv);
-      const to=avg(ta.filter(v=>v>0));
+      const ta=computeAvgs(tv);const tns=computeNs(tv);const to=avg(ta.filter(v=>v>0));
       teamResults[safeKey(t)]={name:t,avgs:ta,overall:to,voterCount:tv.length,nsCount:tns};
     });
   }
@@ -616,7 +611,6 @@ window.openRes=async sid=>{
   window._resSess=sn.val();S.sid=sid;await renderResults(sn.val(),sid);showPage('res');
   document.getElementById('res-back').onclick=()=>openTeam(S.tid);
 };
-
 async function renderResults(s,sid){
   const cats=s.categories||[];const r=s.results||{};
   const avgs=r.avgs||cats.map(()=>0);const ov=r.overall||0;const vc=r.voterCount||0;
@@ -625,14 +619,12 @@ async function renderResults(s,sid){
   document.getElementById('res-lbl').textContent=`${s.teamName} · ${s.sprintCode||s.sprint} · ${ft(s.createdAt)} · ${vc} votes${artTeams.length?' · ART':''}`;
   const pos=avgs.filter(v=>v>0);
   const low=pos.length?Math.min(...pos):0;const high=pos.length?Math.max(...pos):0;
-  const totalNs=nsCount.reduce((a,b)=>a+b,0);const nsVoters=Math.round(totalNs/(cats.length||1));
-  // ART summary cards
+  const totalNs=nsCount.reduce((a,b)=>a+b,0);const nsAvg=cats.length?Math.round(totalNs/cats.length):0;
   document.getElementById('res-art-sum').innerHTML=`
     <div class="sc3"><div class="big ${gc(ov)}">${ov.toFixed(1)}</div><div class="lbl">${ge(ov)} ART Overall</div></div>
     <div class="sc3"><div class="big cg">${high.toFixed(1)}</div><div class="lbl">👆 Highest</div></div>
     <div class="sc3"><div class="big ${gc(low)}">${low.toFixed(1)}</div><div class="lbl">👇 Lowest</div></div>
-    <div class="sc3"><div class="big cm">${nsVoters}</div><div class="lbl">❓ Not Sure (avg)</div></div>`;
-  // ART category list
+    <div class="sc3"><div class="big cm">${nsAvg}</div><div class="lbl">❓ Not Sure (avg/cat)</div></div>`;
   const sorted=cats.map((c,i)=>({...c,avg:avgs[i],ns:nsCount[i]})).sort((a,b)=>a.avg-b.avg);
   document.getElementById('res-art-cats').innerHTML=sorted.map(c=>`
     <div class="ri"><div class="ric">${c.icon}</div><div class="rin">
@@ -640,17 +632,16 @@ async function renderResults(s,sid){
       ${c.desc?`<div class="cat-desc">${c.desc}</div>`:''}
       <div class="rbw"><div class="rb ${gb(c.avg)}" style="width:${(c.avg/5)*100}%"></div></div>
     </div><div class="rsc ${gc(c.avg)}">${c.avg.toFixed(1)}</div></div>`).join('');
-
   // Per-team cards
   let teamsHtml='';
   if(artTeams.length&&teamResults){
     artTeams.forEach(team=>{
       const tr=teamResults[safeKey(team)];if(!tr)return;
       const tSorted=cats.map((c,i)=>({...c,avg:tr.avgs[i]||0,ns:tr.nsCount?.[i]||0})).sort((a,b)=>a.avg-b.avg);
-      const tOv=tr.overall||0;const tNsAvg=Math.round((tr.nsCount||[]).reduce((a,b)=>a+b,0)/(cats.length||1));
+      const tOv=tr.overall||0;const tNsAvg=cats.length?Math.round((tr.nsCount||[]).reduce((a,b)=>a+b,0)/cats.length):0;
       teamsHtml+=`<div class="team-card">
         <div class="team-card-hd">
-          <div><div class="team-card-name">🏃 ${team}</div><div style="color:var(--muted);font-size:.78rem">${tr.voterCount||0} votes${tNsAvg?` · ❓ ${tNsAvg} Not Sure (avg)`:''}</div></div>
+          <div><div class="team-card-name">🏃 ${team}</div><div style="color:var(--muted);font-size:.78rem">${tr.voterCount||0} vote${tr.voterCount!==1?'s':''}${tNsAvg?` · ❓ ${tNsAvg} Not Sure (avg)`:''}</div></div>
           <div class="team-score ${gc(tOv)}">${tOv.toFixed(1)}</div>
         </div>
         ${tSorted.map(c=>`<div class="ri" style="margin-bottom:.45rem"><div class="ric">${c.icon}</div><div class="rin">
@@ -661,35 +652,30 @@ async function renderResults(s,sid){
     });
   }
   document.getElementById('res-teams').innerHTML=teamsHtml;
-
   // Cross-team table
   if(artTeams.length>=2&&teamResults){
-    const tblEl=document.getElementById('res-table');tblEl.classList.remove('hidden');
-    let th=`<thead><tr><th>Category</th>${artTeams.map(t=>`<th>${t}</th>`).join('')}<th>ART</th></tr></thead>`;
-    let tb='<tbody>'+cats.map((c,ci)=>{
+    document.getElementById('res-table').classList.remove('hidden');
+    const th=`<thead><tr><th>Category</th>${artTeams.map(t=>`<th>${t}</th>`).join('')}<th>ART</th></tr></thead>`;
+    const tb='<tbody>'+cats.map((c,ci)=>{
       const tVals=artTeams.map(t=>(teamResults[safeKey(t)]?.avgs||[])[ci]||0);
       return`<tr><td>${c.icon} ${c.name}</td>${tVals.map(v=>`<td class="${gc(v)}">${v.toFixed(1)}</td>`).join('')}<td class="${gc(avgs[ci])}">${avgs[ci].toFixed(1)}</td></tr>`;
     }).join('')+'</tbody>';
     document.getElementById('res-ctbl').innerHTML=th+tb;
   }else document.getElementById('res-table').classList.add('hidden');
-
   // Open question comments
   const votes=Object.values(s.votes||{});const comments=votes.map(v=>({c:v.comment,t:v.team})).filter(x=>x.c);
-  if(s.openQuestion&&comments.length){
-    document.getElementById('res-comments').innerHTML=`<div class="card"><div class="ct">💬 ${s.openQuestion}</div>${comments.map(x=>`<div class="cmb2">${artTeams.length&&x.t?`<span style="color:var(--accent);font-size:.78rem;font-weight:700">${x.t}</span> · `:''}"${x.c}"</div>`).join('')}</div>`;
-  }else document.getElementById('res-comments').innerHTML='';
-
-  // Previous sprint
+  document.getElementById('res-comments').innerHTML=s.openQuestion&&comments.length
+    ?`<div class="card"><div class="ct">💬 ${s.openQuestion}</div>${comments.map(x=>`<div class="cmb2">${artTeams.length&&x.t?`<span style="color:var(--accent);font-size:.78rem;font-weight:700">${x.t}</span> · `:''}"${x.c}"</div>`).join('')}</div>`:'';
+  // Previous sprint comparison
   const prev=await getPrev(sid);
   if(prev){
     const pa=prev.results?.avgs||[];
-    let ph=`<div class="card"><div class="ct">📈 vs Previous (${prev.sprintCode||prev.sprint})</div>`;
-    cats.forEach((c,i)=>{const cv=avgs[i];const pv=pa[i]||0;const d=cv-pv;const chip=Math.abs(d)<0.05?'<span class="chip csm">→ same</span>':d>0?`<span class="chip cu">↑ +${d.toFixed(1)}</span>`:`<span class="chip cdw">↓ ${d.toFixed(1)}</span>`;
+    let ph=`<div class="card"><div class="ct">📈 vs Previous Sprint (${prev.sprintCode||prev.sprint})</div>`;
+    cats.forEach((c,i)=>{const cv=avgs[i];const pv=pa[i]||0;const d=cv-pv;const chip=Math.abs(d)<0.05?'<span class="chip csm">→ no change</span>':d>0?`<span class="chip cu">↑ +${d.toFixed(1)}</span>`:`<span class="chip cdw">↓ ${d.toFixed(1)}</span>`;
     ph+=`<div class="ri"><div class="ric">${c.icon}</div><div class="rin"><div class="rnm">${c.name} ${chip}</div><div class="rbw"><div class="rb ${gb(cv)}" style="width:${(cv/5)*100}%"></div></div></div><div class="rsc ${gc(cv)}">${cv.toFixed(1)}</div></div>`});
-    ph+='</div>';document.getElementById('res-prev').innerHTML=ph;
+    document.getElementById('res-prev').innerHTML=ph+'</div>';
   }else document.getElementById('res-prev').innerHTML='';
 }
-
 async function getPrev(cid){
   if(!S.tid||!S.uid)return null;
   const sn=await get(ref(db,`users/${S.uid}/teams/${S.tid}/sessions`));if(!sn.exists())return null;
@@ -699,7 +685,7 @@ async function getPrev(cid){
 
 // ── COMPARISON ────────────────────────────────────────────────
 window.showComparison=async()=>{
-  document.getElementById('comp-title').textContent=`${S.td.name} · Comparison`;
+  document.getElementById('comp-title').textContent=`${S.td.name} · Trend Comparison`;
   document.getElementById('comp-back').onclick=()=>openTeam(S.tid);
   showPage('comp');
   const sn=await get(ref(db,`users/${S.uid}/teams/${S.tid}/sessions`));
@@ -711,10 +697,10 @@ window.compTab=async mode=>{
   if(!_cs.length){document.getElementById('comp-content').innerHTML='<div class="al aw">No closed sessions yet.</div>';return}
   if(mode==='sprint'){
     const sorted=[..._cs].sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)).slice(-5);
-    if(sorted.length<2){document.getElementById('comp-content').innerHTML='<div class="al ai">Need at least 2 sessions.</div>';return}
+    if(sorted.length<2){document.getElementById('comp-content').innerHTML='<div class="al ai">Need at least 2 closed sessions to compare.</div>';return}
     const full=await Promise.all(sorted.map(s=>get(ref(db,`health-sessions/${s.id}`)).then(sn=>sn.val())));
     const valid=full.filter(Boolean);const cats=valid[0]?.categories||[];
-    document.getElementById('comp-content').innerHTML=barChart(valid.map(s=>({label:s.sprintCode||s.sprint,val:s.results?.overall||0})),'Overall — by Sprint')+catTable(cats,valid,s=>s.sprintCode||s.sprint);
+    document.getElementById('comp-content').innerHTML=barChart(valid.map(s=>({label:s.sprintCode||s.sprint,val:s.results?.overall||0})),'Overall Score — by Sprint')+catTable(cats,valid,s=>s.sprintCode||s.sprint);
   }else if(mode==='quarter'){
     const qMap={};_cs.forEach(s=>{const k=`${s.year}-Q${s.quarter}`;if(!qMap[k])qMap[k]={label:`${s.year} Q${s.quarter}`,sessions:[],ca:s.createdAt};qMap[k].sessions.push(s)});
     await renderAgg(Object.values(qMap).sort((a,b)=>a.ca-b.ca).slice(-4),'Quarter');
@@ -724,7 +710,7 @@ window.compTab=async mode=>{
   }
 };
 async function renderAgg(groups,label){
-  if(groups.length<2){document.getElementById('comp-content').innerHTML='<div class="al ai">Need at least 2 periods.</div>';return}
+  if(groups.length<2){document.getElementById('comp-content').innerHTML=`<div class="al ai">Need at least 2 ${label.toLowerCase()}s to compare.</div>`;return}
   const enriched=await Promise.all(groups.map(async g=>{
     const full=await Promise.all(g.sessions.map(s=>get(ref(db,`health-sessions/${s.id}`)).then(sn=>sn.val())));
     const valid=full.filter(Boolean);const cats=valid[0]?.categories||[];
@@ -732,7 +718,7 @@ async function renderAgg(groups,label){
     return{label:g.label,overall:avg(avgs.filter(v=>v>0)),avgs,categories:cats};
   }));
   const cats=enriched[0]?.categories||[];
-  document.getElementById('comp-content').innerHTML=barChart(enriched.map(g=>({label:g.label,val:g.overall})),`Overall — by ${label}`)+catTableAvg(cats,enriched);
+  document.getElementById('comp-content').innerHTML=barChart(enriched.map(g=>({label:g.label,val:g.overall})),`Overall Score — by ${label}`)+catTableAvg(cats,enriched);
 }
 function barChart(items,title){
   return`<div class="card"><div class="ct">${title}</div><div style="display:flex;align-items:flex-end;gap:.55rem;height:90px;margin-bottom:.5rem">${items.map(it=>{const h=Math.max(16,(it.val/5)*90);return`<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:.25rem"><div style="font-size:.78rem;font-weight:700;color:${it.val>=4?'var(--green)':it.val>=3?'var(--yellow)':'var(--red)'}">${it.val.toFixed(1)}</div><div style="width:100%;height:${h}px;background:${it.val>=4?'var(--green)':it.val>=3?'var(--yellow)':'var(--red)'};border-radius:5px 5px 0 0"></div></div>`}).join('')}</div><div style="display:flex;gap:.55rem">${items.map(it=>`<div style="flex:1;text-align:center;font-size:.7rem;color:var(--muted);word-break:break-all">${it.label}</div>`).join('')}</div></div>`;
@@ -747,14 +733,14 @@ function catTableAvg(cats,groups){
 // ── VOTING ────────────────────────────────────────────────────
 function renderVoteUI(s){
   const cats=s.categories||[];const artTeams=s.artTeams||[];
-  // Team selector
   const sel=document.getElementById('vote-team-sel');
+  const wrap=document.getElementById('vote-team-wrap');
   if(artTeams.length){
     sel.innerHTML='<option value="">— Select your team —</option>'+artTeams.map(t=>`<option value="${t}">${t}</option>`).join('');
-    sel.parentElement.parentElement.classList.remove('hidden');
+    wrap.classList.remove('hidden');
   }else{
     sel.innerHTML='<option value="all">All</option>';
-    sel.parentElement.parentElement.classList.add('hidden');
+    wrap.classList.add('hidden');
   }
   const emojis=["😞","😕","😐","🙂","😍"];
   document.getElementById('vote-cats').innerHTML=cats.map((c,ci)=>`
@@ -775,18 +761,23 @@ window.selVote=(ci,score)=>{
   document.getElementById(`v-${ci}-ns`)?.classList.toggle('sel',score==='ns');
 };
 window.submitVote=async()=>{
-  const code=S.sid;const artTeams=(await get(ref(db,`health-sessions/${code}/artTeams`))).val()||[];
+  const code=S.sid;
+  const artTeams=(await get(ref(db,`health-sessions/${code}/artTeams`))).val()||[];
   const teamSel=document.getElementById('vote-team-sel').value;
-  if(artTeams.length&&!teamSel){alert('Please select your team.');return}
+  if(artTeams.length&&!teamSel){alert('Please select your team before submitting.');return}
   const catCount=(await get(ref(db,`health-sessions/${code}/categories`))).val()?.length||0;
-  if(Object.keys(S.votes).length<catCount){alert(`Please answer all ${catCount} questions.`);return}
+  if(Object.keys(S.votes).length<catCount){alert(`Please answer all ${catCount} questions before submitting.`);return}
   const comment=document.getElementById('vote-comment')?.value?.trim()||null;
   const payload={scores:S.votes,team:teamSel||null};if(comment)payload.comment=comment;
   await set(ref(db,`health-sessions/${code}/votes/${S.pid}`),payload);
   const vs=await get(ref(db,`health-sessions/${code}/votes`));
-  await update(ref(db,`health-sessions/${code}`),{vc:Object.keys(vs.val()||{}).length});
+  const newVc=Object.keys(vs.val()||{}).length;
+  await update(ref(db,`health-sessions/${code}`),{vc:newVc});
+  // Sync vote count to session tree
+  const meta=await get(ref(db,`health-sessions/${code}`));
+  if(meta.exists()){const{ownerId,teamId}=meta.val();if(ownerId&&teamId){try{await update(ref(db,`users/${ownerId}/teams/${teamId}/sessions/${code}`),{vc:newVc})}catch(e){console.warn('vc sync:',e)}}}
   showPage('sub');
-  document.getElementById('sub-link-box').innerHTML=`📊 Results will appear once the facilitator reveals them. <a href="${location.origin}${location.pathname}?join=${code}">Check back here.</a>`;
+  document.getElementById('sub-link-box').innerHTML=`📊 Results will be available once the facilitator reveals them.<br/><a href="${location.origin}${location.pathname}?join=${code}">Check back here.</a>`;
 };
 
 // ── PDF ───────────────────────────────────────────────────────
@@ -797,20 +788,15 @@ window.exportPDF=async()=>{
   const np=()=>{doc.addPage();y=18};const ck=(n=20)=>{if(y+n>276)np()};
   const cats=s.categories||[];const r=s.results||{};const avgs=r.avgs||[];const ov=r.overall||0;
   const artTeams=s.artTeams||[];const teamResults=r.teamResults||{};const nsCount=r.nsCount||[];
-
   // Header
   doc.setFillColor(13,115,119);doc.rect(0,0,W,34,'F');
-  doc.setTextColor(255,255,255);doc.setFontSize(17);doc.setFont('helvetica','bold');doc.text('Team Health Check Report',M,14);
-  doc.setFontSize(9);doc.setFont('helvetica','normal');
-  doc.text(`${s.teamName}  ·  ${s.sprintCode||s.sprint}  ·  ${ft(s.createdAt)}  ·  ${r.voterCount||0} votes${artTeams.length?' · ART':''}`,M,25);y=44;
-
-  // ART Overall score
+  doc.setTextColor(255,255,255);doc.setFontSize(17);doc.setFont('helvetica','bold');doc.text('ART Health Check Report',M,14);
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.text(`${s.teamName}  ·  ${s.sprintCode||s.sprint}  ·  ${ft(s.createdAt)}  ·  ${r.voterCount||0} votes${artTeams.length?' · ART':''}`,M,25);y=44;
+  // Overall
   doc.setTextColor(0,200,150);doc.setFontSize(26);doc.setFont('helvetica','bold');doc.text(ov.toFixed(1),W/2,y,{align:'center'});
-  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(120,120,120);
-  doc.text(artTeams.length?'ART Overall Average / 5':'Overall Average / 5',W/2,y+7,{align:'center'});y+=20;
-
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(120,120,120);doc.text('ART Overall Score / 5',W/2,y+7,{align:'center'});y+=20;
   // ART categories
-  doc.setTextColor(13,115,119);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('Category Scores (ART)',M,y);y+=7;
+  doc.setTextColor(13,115,119);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('ART Category Scores',M,y);y+=7;
   const sorted=[...cats].map((c,i)=>({...c,avg:avgs[i],ns:nsCount[i]||0})).sort((a,b)=>a.avg-b.avg);
   sorted.forEach(c=>{
     const h=c.desc?22:16;ck(h);
@@ -825,8 +811,7 @@ window.exportPDF=async()=>{
     doc.setTextColor(...rgb);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(c.avg.toFixed(1),W-M-3,y+9,{align:'right'});
     y+=h+2;
   });
-
-  // Per-team breakdown
+  // Team breakdown
   if(artTeams.length&&Object.keys(teamResults).length){
     np();
     doc.setTextColor(13,115,119);doc.setFontSize(13);doc.setFont('helvetica','bold');doc.text('Team Breakdown',M,y);y+=10;
@@ -835,23 +820,21 @@ window.exportPDF=async()=>{
       ck(20);
       doc.setFillColor(10,50,80);doc.roundedRect(M,y,W-M*2,12,3,3,'F');
       doc.setTextColor(0,200,150);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(`🏃 ${team}`,M+4,y+8);
-      doc.setTextColor(200,220,220);doc.setFontSize(9);doc.text(`${tr.voterCount||0} votes · Overall: ${tr.overall.toFixed(1)}`,W-M-3,y+8,{align:'right'});
+      doc.setTextColor(200,220,220);doc.setFontSize(9);doc.text(`${tr.voterCount||0} votes · Score: ${tr.overall.toFixed(1)}`,W-M-3,y+8,{align:'right'});
       y+=14;
       const tSorted=[...cats].map((c,i)=>({...c,avg:tr.avgs[i]||0,ns:tr.nsCount?.[i]||0})).sort((a,b)=>a.avg-b.avg);
       tSorted.forEach(c=>{
         ck(13);doc.setFillColor(245,248,250);doc.roundedRect(M,y,W-M*2,11,2,2,'F');
         doc.setTextColor(30,30,30);doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.text(`${c.icon} ${c.name}`,M+3,y+7);
-        if(c.ns){doc.setTextColor(107,127,163);doc.setFontSize(7);doc.text(`❓${c.ns}NS`,M+80,y+7)}
+        if(c.ns){doc.setTextColor(107,127,163);doc.setFontSize(7);doc.text(`❓ ${c.ns} NS`,M+80,y+7)}
         const bW=45,bX=W-M-bW-18;
         doc.setFillColor(220,220,220);doc.roundedRect(bX,y+3,bW,4,2,2,'F');
         const fill=(c.avg/5)*bW;const rgb=c.avg>=4?[0,200,150]:c.avg>=3?[244,162,97]:[230,57,70];
         doc.setFillColor(...rgb);if(fill>0)doc.roundedRect(bX,y+3,fill,4,2,2,'F');
         doc.setTextColor(...rgb);doc.setFontSize(9);doc.setFont('helvetica','bold');doc.text(c.avg.toFixed(1),W-M-3,y+8,{align:'right'});
         y+=13;
-      });
-      y+=4;
+      });y+=4;
     });
-
     // Cross-team table
     if(artTeams.length>=2){
       ck(30);doc.setTextColor(13,115,119);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text('Team Comparison Table',M,y);y+=8;
@@ -862,27 +845,21 @@ window.exportPDF=async()=>{
       artTeams.forEach((t,i)=>doc.text(t.slice(0,10),M+(i+1)*colW+2,y+5.5));
       doc.text('ART',M+(artTeams.length+1)*colW+2,y+5.5);y+=8;
       cats.forEach((c,ci)=>{
-        ck(8);const bg=ci%2===0?[245,248,250]:[255,255,255];
-        doc.setFillColor(...bg);doc.rect(M,y,W-M*2,7,'F');
-        doc.setTextColor(40,40,40);doc.setFontSize(7.5);doc.setFont('helvetica','normal');
-        doc.text(`${c.icon} ${c.name}`.slice(0,20),M+2,y+5);
+        ck(8);doc.setFillColor(ci%2===0?245:255,ci%2===0?248:255,ci%2===0?250:255);doc.rect(M,y,W-M*2,7,'F');
+        doc.setTextColor(40,40,40);doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.text(`${c.icon} ${c.name}`.slice(0,20),M+2,y+5);
         artTeams.forEach((t,i)=>{const v=(teamResults[safeKey(t)]?.avgs||[])[ci]||0;const rgb=v>=4?[0,150,100]:v>=3?[200,120,50]:[200,50,60];doc.setTextColor(...rgb);doc.setFont('helvetica','bold');doc.text(v.toFixed(1),M+(i+1)*colW+colW/2,y+5,{align:'center'})});
-        const av=avgs[ci]||0;const argb=av>=4?[0,150,100]:av>=3?[200,120,50]:[200,50,60];doc.setTextColor(...argb);doc.text(av.toFixed(1),M+(artTeams.length+1)*colW+colW/2,y+5,{align:'center'});
-        y+=7;
+        const av=avgs[ci]||0;const argb=av>=4?[0,150,100]:av>=3?[200,120,50]:[200,50,60];doc.setTextColor(...argb);doc.text(av.toFixed(1),M+(artTeams.length+1)*colW+colW/2,y+5,{align:'center'});y+=7;
       });y+=5;
     }
   }
-
   // Comments
   const votes=Object.values(s.votes||{});const comments=votes.map(v=>({c:v.comment,t:v.team})).filter(x=>x.c);
   if(s.openQuestion&&comments.length){
     ck(20);doc.setTextColor(13,115,119);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text(`Comments: ${s.openQuestion}`,M,y);y+=8;
     comments.forEach(({c,t})=>{const lines=doc.splitTextToSize(`${t?t+': ':''}"${c}"`,W-M*2-10);ck(lines.length*5+6);doc.setFillColor(240,250,248);doc.roundedRect(M,y,W-M*2,lines.length*5+4,2,2,'F');doc.setTextColor(80,80,80);doc.setFontSize(8.5);doc.setFont('helvetica','italic');doc.text(lines,M+3,y+5);y+=lines.length*5+8});
   }
-
-  doc.setFontSize(7.5);doc.setTextColor(160,160,160);doc.setFont('helvetica','normal');
-  doc.text('Generated by Team Health Check · hakanadiguzel.com',W/2,287,{align:'center'});
-  doc.save(`health-${s.teamName}-${s.sprintCode||s.sprint}.pdf`.replace(/\s+/g,'-'));
+  doc.setFontSize(7.5);doc.setTextColor(160,160,160);doc.setFont('helvetica','normal');doc.text('Generated by ART Health Check · hakanadiguzel.com',W/2,287,{align:'center'});
+  doc.save(`art-health-${s.teamName}-${s.sprintCode||s.sprint}.pdf`.replace(/\s+/g,'-'));
 };
 </script>
 <footer>Built with ❤️ by <a href="https://hakanadiguzel.com">Hakan Adıgüzel</a> · <a href="https://hakanadiguzel.com">hakanadiguzel.com</a></footer>
