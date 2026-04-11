@@ -4,6 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ART Health Check</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iOCIgZmlsbD0iIzBhMTYyOCIvPjxyZWN0IHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgcng9IjgiIGZpbGw9InJnYmEoMCwyMDAsMTUwLDAuMTUpIi8+PGNpcmNsZSBjeD0iMTYiIGN5PSIxNiIgcj0iOSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDBjODk2IiBzdHJva2Utd2lkdGg9IjIuNSIvPjxwYXRoIGQ9Ik0xMSAxNiBMMTQuNSAxOS41IEwyMSAxMyIgc3Ryb2tlPSIjMDBjODk2IiBzdHJva2Utd2lkdGg9IjIuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBmaWxsPSJub25lIi8+PC9zdmc+"/>
 <style>
 :root{--bg:#0a1628;--surface:#111f35;--surface2:#172540;--accent:#00c896;--yellow:#f4a261;--red:#e63946;--text:#e8edf5;--muted:#6b7fa3;--border:rgba(255,255,255,0.08);--green:#00c896;--r:14px}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -120,7 +121,7 @@ footer{text-align:center;padding:2rem;color:var(--muted);font-size:.79rem;border
 </head>
 <body>
 <nav>
-  <div class="nb"><div class="nd"></div>💚 ART Health Check</div>
+  <div class="nb"><div class="nd"></div>💚 ART Health Check <span style="font-size:.65rem;background:rgba(0,200,150,.15);color:var(--accent);border:1px solid rgba(0,200,150,.3);border-radius:6px;padding:.1rem .4rem;font-weight:700;letter-spacing:.04em">v2</span></div>
   <div class="nr">
     <span class="nu" id="nav-u"></span>
     <button class="btn bs bsm hidden" id="nav-out" onclick="doLogout()">Sign Out</button>
@@ -555,6 +556,8 @@ window.openSA=async sid=>{
     const lnk=`${location.origin}${location.pathname}?join=${s.code}`;
     document.getElementById('sa-link').textContent=lnk;window._saLink=lnk;
     document.getElementById('sa-j').textContent=j;document.getElementById('sa-s').textContent=sub;
+    // Keep session tree vc in sync (realtime)
+    if(S.uid&&S.tid){update(ref(db,`users/${S.uid}/teams/${S.tid}/sessions/${sid}`),{vc:sub}).catch(()=>{})}
     const ctrl=document.getElementById('sa-ctrl');
     ctrl.innerHTML=s.status==='open'
       ?`<button class="btn bp bf bl" onclick="revealNow()">🎉 Reveal & Close Session</button><button class="btn bs bf" onclick="closeOnly()">🔒 Close without revealing</button>`
@@ -782,6 +785,8 @@ window.submitVote=async()=>{
 
 // ── PDF ───────────────────────────────────────────────────────
 window.exportPDF=async()=>{
+  // jsPDF doesn't support emoji — strip them from text
+  const noEmoji=s=>(s||'').replace(/[\u{1F300}-\u{1FFFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{1F000}-\u{1F02F}\u{1F0A0}-\u{1F0FF}\u{1F100}-\u{1F1FF}\u{1F200}-\u{1F2FF}\u{1F900}-\u{1F9FF}\u{1FA00}-\u{1FA6F}\u{1FA70}-\u{1FAFF}]/gu,'').trim();
   const s=window._resSess;if(!s)return;
   const{jsPDF}=window.jspdf;const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
   const W=210,M=18;let y=18;
@@ -801,9 +806,9 @@ window.exportPDF=async()=>{
   sorted.forEach(c=>{
     const h=c.desc?22:16;ck(h);
     doc.setFillColor(245,248,250);doc.roundedRect(M,y,W-M*2,h,2,2,'F');
-    doc.setTextColor(30,30,30);doc.setFontSize(9.5);doc.setFont('helvetica','bold');doc.text(`${c.icon} ${c.name}`,M+3,y+8);
-    if(c.ns){doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(107,127,163);doc.text(`❓ ${c.ns} Not Sure`,M+3,y+(c.desc?18:13))}
-    if(c.desc){doc.setFontSize(7.5);doc.setFont('helvetica','italic');doc.setTextColor(130,130,130);doc.text(doc.splitTextToSize(c.desc,W-M*2-50)[0],M+3,y+14)}
+    doc.setTextColor(30,30,30);doc.setFontSize(9.5);doc.setFont('helvetica','bold');doc.text(noEmoji(`${c.icon} ${c.name}`),M+3,y+8);
+    if(c.ns){doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(107,127,163);doc.text(`NS: ${c.ns}`,M+3,y+(c.desc?18:13))}
+    if(c.desc){doc.setFontSize(7.5);doc.setFont('helvetica','italic');doc.setTextColor(130,130,130);doc.text(doc.splitTextToSize(noEmoji(c.desc||''),W-M*2-50)[0],M+3,y+14)}
     const bW=50,bX=W-M-bW-18;
     doc.setFillColor(220,220,220);doc.roundedRect(bX,y+5,bW,5,2,2,'F');
     const fill=(c.avg/5)*bW;const rgb=c.avg>=4?[0,200,150]:c.avg>=3?[244,162,97]:[230,57,70];
@@ -819,14 +824,14 @@ window.exportPDF=async()=>{
       const tr=teamResults[safeKey(team)];if(!tr)return;
       ck(20);
       doc.setFillColor(10,50,80);doc.roundedRect(M,y,W-M*2,12,3,3,'F');
-      doc.setTextColor(0,200,150);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(`🏃 ${team}`,M+4,y+8);
+      doc.setTextColor(0,200,150);doc.setFontSize(10);doc.setFont('helvetica','bold');doc.text(noEmoji(`${team}`),M+4,y+8);
       doc.setTextColor(200,220,220);doc.setFontSize(9);doc.text(`${tr.voterCount||0} votes · Score: ${tr.overall.toFixed(1)}`,W-M-3,y+8,{align:'right'});
       y+=14;
       const tSorted=[...cats].map((c,i)=>({...c,avg:tr.avgs[i]||0,ns:tr.nsCount?.[i]||0})).sort((a,b)=>a.avg-b.avg);
       tSorted.forEach(c=>{
         ck(13);doc.setFillColor(245,248,250);doc.roundedRect(M,y,W-M*2,11,2,2,'F');
-        doc.setTextColor(30,30,30);doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.text(`${c.icon} ${c.name}`,M+3,y+7);
-        if(c.ns){doc.setTextColor(107,127,163);doc.setFontSize(7);doc.text(`❓ ${c.ns} NS`,M+80,y+7)}
+        doc.setTextColor(30,30,30);doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.text(noEmoji(`${c.icon} ${c.name}`),M+3,y+7);
+        if(c.ns){doc.setTextColor(107,127,163);doc.setFontSize(7);doc.text(`NS:${c.ns}`,M+80,y+7)}
         const bW=45,bX=W-M-bW-18;
         doc.setFillColor(220,220,220);doc.roundedRect(bX,y+3,bW,4,2,2,'F');
         const fill=(c.avg/5)*bW;const rgb=c.avg>=4?[0,200,150]:c.avg>=3?[244,162,97]:[230,57,70];
@@ -846,7 +851,7 @@ window.exportPDF=async()=>{
       doc.text('ART',M+(artTeams.length+1)*colW+2,y+5.5);y+=8;
       cats.forEach((c,ci)=>{
         ck(8);doc.setFillColor(ci%2===0?245:255,ci%2===0?248:255,ci%2===0?250:255);doc.rect(M,y,W-M*2,7,'F');
-        doc.setTextColor(40,40,40);doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.text(`${c.icon} ${c.name}`.slice(0,20),M+2,y+5);
+        doc.setTextColor(40,40,40);doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.text(noEmoji(`${c.icon} ${c.name}`).slice(0,18),M+2,y+5);
         artTeams.forEach((t,i)=>{const v=(teamResults[safeKey(t)]?.avgs||[])[ci]||0;const rgb=v>=4?[0,150,100]:v>=3?[200,120,50]:[200,50,60];doc.setTextColor(...rgb);doc.setFont('helvetica','bold');doc.text(v.toFixed(1),M+(i+1)*colW+colW/2,y+5,{align:'center'})});
         const av=avgs[ci]||0;const argb=av>=4?[0,150,100]:av>=3?[200,120,50]:[200,50,60];doc.setTextColor(...argb);doc.text(av.toFixed(1),M+(artTeams.length+1)*colW+colW/2,y+5,{align:'center'});y+=7;
       });y+=5;
@@ -858,10 +863,11 @@ window.exportPDF=async()=>{
     ck(20);doc.setTextColor(13,115,119);doc.setFontSize(11);doc.setFont('helvetica','bold');doc.text(`Comments: ${s.openQuestion}`,M,y);y+=8;
     comments.forEach(({c,t})=>{const lines=doc.splitTextToSize(`${t?t+': ':''}"${c}"`,W-M*2-10);ck(lines.length*5+6);doc.setFillColor(240,250,248);doc.roundedRect(M,y,W-M*2,lines.length*5+4,2,2,'F');doc.setTextColor(80,80,80);doc.setFontSize(8.5);doc.setFont('helvetica','italic');doc.text(lines,M+3,y+5);y+=lines.length*5+8});
   }
-  doc.setFontSize(7.5);doc.setTextColor(160,160,160);doc.setFont('helvetica','normal');doc.text('Generated by ART Health Check · hakanadiguzel.com',W/2,287,{align:'center'});
+  doc.setFontSize(7.5);doc.setTextColor(160,160,160);doc.setFont('helvetica','normal');doc.text('Generated by ART Health Check v2 · hakanadiguzel.com',W/2,287,{align:'center'});
   doc.save(`art-health-${s.teamName}-${s.sprintCode||s.sprint}.pdf`.replace(/\s+/g,'-'));
 };
 </script>
 <footer>Built with ❤️ by <a href="https://hakanadiguzel.com">Hakan Adıgüzel</a> · <a href="https://hakanadiguzel.com">hakanadiguzel.com</a></footer>
+<script data-name="BMC-Widget" data-cfasync="false" src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" data-id="hakanadigui" data-description="Support me on Buy me a coffee!" data-message="" data-color="#5F7FFF" data-position="Right" data-x_margin="18" data-y_margin="18"></script>
 </body>
 </html>
